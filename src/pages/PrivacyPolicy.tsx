@@ -1,128 +1,82 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { organizationData } from '../data/organization';
+import { ContactPageLink, PolicyPage } from '../components/PolicyPage';
+import type { PolicySection } from '../components/PolicyPage';
 
-export const PrivacyPolicy: React.FC = () => {
+const sections: PolicySection[] = [
+  {
+    title: 'General commitment to privacy',
+    body: (
+      <p>
+        Fairclaim Foundation intends to handle visitor information with respect and care. The website is not designed
+        for commercial data monetization, advertising profiling, or sharing visitor information without a reason.
+      </p>
+    ),
+  },
+  {
+    title: 'Information collected through enquiries',
+    body: (
+      <>
+        <p>When you write to the foundation through the contact page, only the information you choose to provide is collected:</p>
+        <ul>
+          <li>Your full name and email address</li>
+          <li>Your area of interest, and your organization if you choose to add it</li>
+          <li>The message you write</li>
+        </ul>
+        <p>Please do not include sensitive case documents or unnecessary personal details in your message.</p>
+      </>
+    ),
+  },
+  {
+    title: 'Purpose of use',
+    body: (
+      <>
+        <p>Information submitted is intended to be used only to:</p>
+        <ul>
+          <li>Read and respond to your enquiry or collaboration interest</li>
+          <li>Keep basic correspondence records needed to follow up</li>
+        </ul>
+      </>
+    ),
+  },
+  {
+    title: 'Cookies and analytics',
+    body: (
+      <p>
+        This website is an informational resource. It does not use advertising trackers, behavioral cookies, or
+        marketing pixels, and its fonts are served from the site itself rather than from a third-party font service.
+        Hosting infrastructure may keep standard technical logs (such as IP address and request headers) for security
+        and reliability.
+      </p>
+    ),
+  },
+  {
+    title: 'Third-party links and services',
+    body: (
+      <p>
+        If you submit the contact form, your message is passed to the form-handling service the foundation configures
+        for this site. The website may also link to external organizations; Fairclaim Foundation is not responsible
+        for their privacy practices.
+      </p>
+    ),
+  },
+  {
+    title: 'Privacy questions',
+    body: (
+      <p>
+        If you have questions about this draft, or want to ask about information you submitted, please use the{' '}
+        <ContactPageLink />. Direct contact details will be published once the foundation confirms them.
+      </p>
+    ),
+  },
+];
+
+export function PrivacyPolicy() {
   return (
-    <div className="flex flex-col">
-      {/* Header Banner */}
-      <section className="pt-14 pb-16 md:pt-20 md:pb-24 bg-[#F4EFE6] border-b border-[#E8E1D5]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-[#E8E1D5] mb-4">
-            <span className="w-2 h-2 rounded-full bg-[#C85A32]" aria-hidden="true" />
-            <span className="text-xs uppercase tracking-widest font-semibold text-[#142C20]">
-              Institutional Governance
-            </span>
-          </div>
-          <h1 className="font-editorial text-4xl sm:text-5xl text-[#142C20] font-semibold tracking-tight leading-tight mb-4">
-            Privacy Policy
-          </h1>
-          <p className="text-base sm:text-lg text-[#365342] leading-relaxed">
-            Information regarding our baseline data privacy practices and commitment to transparent communication.
-          </p>
-        </div>
-      </section>
-
-      {/* Legal Review Notice Banner */}
-      <section className="py-6 bg-[#FAF8F5] border-b border-[#E8E1D5]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-4 sm:p-5 rounded-2xl bg-[#FFF9F5] border border-[#C85A32]/30 flex items-start gap-3.5">
-            <AlertCircle className="w-5 h-5 text-[#C85A32] shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-[#4A3228] leading-relaxed">
-              <strong className="font-semibold text-[#C85A32]">Draft Status Notice: </strong>
-              This Privacy Policy is a provisional framework awaiting formal ratification by the FAIRCLAIM FOUNDATION board and legal counsel. Specific statutory registrations and legal guarantees will be incorporated upon formal confirmation.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Policy Content */}
-      <section className="py-16 sm:py-24 bg-white border-b border-[#E8E1D5]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="prose prose-neutral max-w-none space-y-8 text-[#365342] leading-relaxed text-sm sm:text-base">
-            
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                1. General Commitment to Privacy
-              </h2>
-              <p>
-                FAIRCLAIM FOUNDATION operates with respect for individual privacy and confidential inquiry handling. We do not engage in commercial data monetization, advertising profiling, or unauthorized dissemination of visitor information.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                2. Information Collected via Inquiries
-              </h2>
-              <p>
-                When visitors communicate with us via our official contact form or direct email, we collect only the information voluntarily provided:
-              </p>
-              <ul className="list-disc pl-6 space-y-1.5 mt-2">
-                <li>Your full name</li>
-                <li>Your preferred contact email address</li>
-                <li>Optional telephone number and inquiry subject</li>
-                <li>The factual details of your communication or proposed collaboration</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                3. Purpose of Processing
-              </h2>
-              <p>
-                Any information submitted is used solely to:
-              </p>
-              <ul className="list-disc pl-6 space-y-1.5 mt-2">
-                <li>Evaluate and respond to your direct inquiry or collaboration proposal</li>
-                <li>Coordinate participatory sessions or community workshops upon mutual agreement</li>
-                <li>Maintain basic administrative correspondence records required for civic stewardship</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                4. Cookies & Web Analytics
-              </h2>
-              <p>
-                This website is built as an informational resource. In keeping with our minimal-tracking philosophy, we do not employ invasive third-party ad trackers, behavioral cookies, or commercial marketing pixels. Standard technical logs generated by hosting infrastructure (e.g. server IP and request headers) are utilized strictly for network stability and cybersecurity protection.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                5. Third-Party Links & Integrations
-              </h2>
-              <p>
-                Our website may contain references or links to external public entities, educational bodies, or regulatory resources. FAIRCLAIM FOUNDATION is not responsible for the privacy practices or content policies of independent external sites.
-              </p>
-            </div>
-
-            <div>
-              <h2 className="font-editorial text-2xl font-bold text-[#142C20] mb-3">
-                6. Contact Regarding Privacy
-              </h2>
-              <p>
-                If you have questions regarding our interim privacy principles or wish to update or remove information previously submitted via an inquiry, please contact our administrative correspondence desk at:
-              </p>
-              <p className="font-semibold text-[#142C20] mt-2">
-                {organizationData.contact.email}
-              </p>
-            </div>
-
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-[#E8E1D5]">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#142C20] hover:text-[#C85A32] transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 text-[#C85A32]" />
-              <span>Return to Homepage</span>
-            </Link>
-          </div>
-        </div>
-      </section>
-    </div>
+    <PolicyPage
+      eyebrow="Privacy"
+      title="Privacy Policy"
+      intro="How information shared with this website is intended to be handled."
+      draftNotice="This is a provisional framework awaiting formal review and adoption by Fairclaim Foundation. Specific registrations and legal commitments will be added once they are confirmed."
+      sections={sections}
+    />
   );
-};
+}

@@ -1,187 +1,152 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { Menu, X, ArrowUpRight, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
-import { headerNavLinks } from '../data/navigation';
+import { mainNav } from '../data/navigation';
 
-export const Header: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [prevPath, setPrevPath] = useState('');
-  const location = useLocation();
+const FOCUSABLE = 'a[href], button:not([disabled])';
 
-  // Reset mobile menu upon route change without cascading effect
-  if (location.pathname !== prevPath) {
-    setPrevPath(location.pathname);
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-  }
 
-  // Close on Escape key
+export function Header() {
+  const { pathname } = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+  /* The menu belongs to a route: navigating anywhere closes it. */
+  const [openAt, setOpenAt] = useState<string | null>(null);
+  const open = openAt === pathname;
+  const setOpen = useCallback((v: boolean) => setOpenAt(v ? pathname : null), [pathname]);
+  const headerRef = useRef<HTMLElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  /* Border and background appear on scroll. Both are always present (transparent
+     at the top) so nothing shifts. */
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isMobileMenuOpen]);
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
-  // Prevent background scroll when mobile menu is active
+  const close = useCallback(
+    (restoreFocus: boolean) => {
+      setOpen(false);
+      if (restoreFocus) toggleRef.current?.focus();
+    },
+    [setOpen],
+  );
+
+  /* Leaving the mobile breakpoint closes the menu */
   useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = () => mq.matches && setOpen(false);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, [setOpen]);
+
+  /* Lock page scroll while the menu is open and move focus into it */
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = prev;
     };
-  }, [isMobileMenuOpen]);
+  }, [open]);
+
+  const onKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (!open) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      close(true);
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const items = Array.from(headerRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    if (!items.length) return;
+    const firstItem = items[0];
+    const lastItem = items[items.length - 1];
+    if (e.shiftKey && document.activeElement === firstItem) {
+      e.preventDefault();
+      lastItem.focus();
+    } else if (!e.shiftKey && document.activeElement === lastItem) {
+      e.preventDefault();
+      firstItem.focus();
+    }
+  };
 
   return (
-    <>
-      {/* Skip to Content accessible bypass */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-[#142C20] focus:text-[#FAF8F5] focus:font-semibold focus:rounded-xl focus:shadow-2xl focus:ring-2 focus:ring-[#C85A32] transition-transform"
-      >
-        Skip to main content
-      </a>
+    <header
+      ref={headerRef}
+      onKeyDown={onKeyDown}
+      data-scrolled={scrolled || open}
+      className="sticky top-0 z-50 border-b border-transparent bg-ivory transition-[background-color,border-color,box-shadow] duration-200 data-[scrolled=true]:border-line data-[scrolled=true]:bg-ivory/90 data-[scrolled=true]:shadow-[0_8px_24px_-18px_rgb(7_31_70/0.35)] data-[scrolled=true]:backdrop-blur-md"
+    >
+      <div className="container-x flex h-[4.5rem] items-center justify-between gap-4 lg:h-20">
+        <BrandLogo />
 
-      {/* Top Institutional Notification Bar */}
-      <div className="bg-[#142C20] text-[#FAF8F5] py-2 px-4 text-xs border-b border-[#204533] hidden sm:block">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#204533] text-[#FAF8F5] text-[10px] font-mono tracking-wider uppercase border border-[#2E5A44]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C85A32] animate-pulse" aria-hidden="true" />
-              Provisional Charter
-            </span>
-            <span className="text-[#C5D3CB] font-normal">
-              Advancing procedural justice, civic equity, and transparent public dialogue.
-            </span>
-          </div>
+        <nav aria-label="Main" className="hidden items-center gap-6 lg:flex xl:gap-8">
+          {mainNav.map((item) => (
+            <NavLink key={item.href} to={item.href} end={item.href === '/'} className="nav-link">
+              {item.name}
+            </NavLink>
+          ))}
+        </nav>
 
-          <div className="flex items-center gap-4 text-[#B2C4B9] text-[11px]">
-            <Link 
-              to="/about" 
-              className="hover:text-white transition-colors underline underline-offset-2 decoration-[#C85A32]/60"
-            >
-              Explore Our Principles
-            </Link>
-          </div>
+        <div className="flex items-center gap-3">
+          <Link to="/contact" className="btn btn-primary hidden !min-h-11 !px-5 lg:inline-flex">
+            Get in touch
+          </Link>
+          <button
+            ref={toggleRef}
+            type="button"
+            className="-mr-2 grid h-12 w-12 place-items-center rounded-[var(--radius-ui)] text-navy transition-colors hover:bg-navy/5 lg:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label={open ? 'Close menu' : 'Open menu'}
+            onClick={() => (open ? close(true) : setOpen(true))}
+          >
+            {open ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+          </button>
         </div>
       </div>
 
-      <header className="sticky top-0 z-40 bg-[#FAF8F5]/90 backdrop-blur-md border-b border-[#E8E1D5] transition-all">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Brand Identity */}
-          <BrandLogo />
-
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 lg:gap-1.5" aria-label="Main Navigation">
-            {headerNavLinks.map((item) => (
-              <NavLink
-                key={item.href}
-                to={item.href}
-                className={({ isActive }) =>
-                  `px-3.5 py-2 text-sm font-medium rounded-xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32] relative ${
-                    isActive
-                      ? 'text-[#142C20] font-semibold bg-[#F4EFE6] border border-[#E8E1D5] shadow-xs'
-                      : 'text-[#3D5A47] hover:text-[#142C20] hover:bg-[#F4EFE6]/70'
-                  }`
-                }
-              >
-                {item.name}
-              </NavLink>
-            ))}
-          </nav>
-
-          {/* Header Actions */}
-          <div className="flex items-center gap-3">
-            {/* Desktop Contact CTA */}
-            <Link
-              to="/contact"
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#142C20] hover:bg-[#204533] text-[#FAF8F5] text-sm font-semibold shadow-xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32] group"
-            >
-              <span>Contact Us</span>
-              <ArrowUpRight className="w-4 h-4 text-[#C85A32] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </Link>
-
-            {/* Mobile Menu Button */}
-            <button
-              type="button"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2.5 rounded-xl text-[#142C20] hover:bg-[#F4EFE6] border border-transparent hover:border-[#E8E1D5] transition-colors focus-visible:ring-2 focus-visible:ring-[#C85A32]"
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-navigation-menu"
-              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" aria-hidden="true" />
-              ) : (
-                <Menu className="w-6 h-6" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation Drawer / Overlay */}
-        {isMobileMenuOpen && (
-          <div
-            id="mobile-navigation-menu"
-            className="md:hidden fixed inset-x-0 top-20 bottom-0 bg-[#0C1A13]/50 backdrop-blur-xs z-50 animate-in fade-in duration-200"
-            onClick={() => setIsMobileMenuOpen(false)}
-          >
-            <div
-              className="bg-[#FAF8F5] border-b border-[#E8E1D5] shadow-2xl p-6 flex flex-col gap-4 max-h-[calc(100vh-5rem)] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-[#8C7A68] px-2">
-                <span>Navigation Menu</span>
-                <span className="text-[#C85A32] font-semibold">FAIRCLAIM</span>
-              </div>
-
-              <nav className="flex flex-col gap-1.5" aria-label="Mobile Navigation">
-                {headerNavLinks.map((item) => (
-                  <NavLink
-                    key={item.href}
-                    to={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={({ isActive }) =>
-                      `px-4 py-3.5 rounded-xl text-base font-medium flex items-center justify-between transition-colors ${
-                        isActive
-                          ? 'bg-[#142C20] text-[#FAF8F5] font-semibold shadow-xs'
-                          : 'text-[#142C20] hover:bg-[#F4EFE6]'
-                      }`
-                    }
-                  >
-                    <span>{item.name}</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-50" />
-                  </NavLink>
-                ))}
-              </nav>
-
-              <div className="pt-4 mt-2 border-t border-[#E8E1D5]">
-                <Link
-                  to="/contact"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-[#C85A32] hover:bg-[#A54421] text-white font-semibold shadow-md transition-all focus-visible:ring-2 focus-visible:ring-[#142C20]"
+      {/* Mobile menu */}
+      <div
+        id="mobile-menu"
+        ref={panelRef}
+        hidden={!open}
+        className="absolute inset-x-0 top-full max-h-[calc(100dvh-4.5rem)] overflow-y-auto overscroll-contain border-b border-line bg-ivory shadow-[0_30px_50px_-30px_rgb(7_31_70/0.45)] lg:hidden"
+      >
+        <nav aria-label="Main mobile" className="container-x py-3">
+          <ul>
+            {mainNav.map((item) => (
+              <li key={item.href} className="border-b border-line last:border-0">
+                <NavLink
+                  to={item.href}
+                  end={item.href === '/'}
+                  className="mobile-link flex min-h-[3.25rem] items-center justify-between font-serif text-[1.5rem] text-navy"
                 >
-                  <span>Submit Foundation Inquiry</span>
-                  <ArrowUpRight className="w-4 h-4" />
-                </Link>
-              </div>
-
-              <div className="text-xs text-[#5D6B62] px-3 text-center mt-2 flex items-center justify-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#C85A32]" />
-                <span>Advancing procedural justice and civic dialogue.</span>
-              </div>
-            </div>
+                  {item.name}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+          <div className="pb-4 pt-4">
+            <Link to="/contact" className="btn btn-primary w-full">
+              Get in touch
+            </Link>
           </div>
-        )}
-      </header>
-    </>
+        </nav>
+      </div>
+      {open && (
+        <div
+          aria-hidden="true"
+          onClick={() => close(true)}
+          className="fixed inset-0 top-[4.5rem] -z-10 bg-navy/40 lg:hidden"
+        />
+      )}
+    </header>
   );
-};
+}

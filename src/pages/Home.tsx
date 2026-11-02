@@ -1,675 +1,396 @@
-import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  ArrowRight, 
-  ArrowUpRight, 
-  Scale, 
-  Compass, 
-  Users, 
-  BookOpen, 
-  Sparkles, 
-  Check, 
-  ChevronRight
-} from 'lucide-react';
-import { organizationData } from '../data/organization';
-import { proposedFocusAreas, galleryItems } from '../data/initiatives';
-import type { GalleryItem } from '../data/initiatives';
-import { ImageModal } from '../components/ImageModal';
+import { ArrowRight } from 'lucide-react';
+import { Emblem } from '../components/Emblem';
+import { Faq } from '../components/Faq';
+import { CurveEdge, RingAccent, SunriseArcs, SunriseOnNavy } from '../components/Geometry';
+import { ButtonLink, Rule } from '../components/ui';
+import { idx } from '../lib/stagger';
+import { focusAreas } from '../data/initiatives';
+import {
+  approachSteps,
+  faqs,
+  guidingPrinciples,
+  mission,
+  purposePrinciples,
+  vision,
+} from '../data/organization';
 
-export const Home: React.FC = () => {
-  const [activePrincipleIndex, setActivePrincipleIndex] = useState(0);
-  const [selectedGalleryItem, setSelectedGalleryItem] = useState<GalleryItem | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const activePrinciple = organizationData.guidingPrinciples[activePrincipleIndex];
-
-  const handleOpenGalleryModal = (item: GalleryItem) => {
-    setSelectedGalleryItem(item);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseGalleryModal = () => {
-    setIsModalOpen(false);
-    setSelectedGalleryItem(null);
-  };
-
+export function Home() {
   return (
-    <div className="flex flex-col">
-      {/* 1. Hero Section: Asymmetrical Editorial Balance with Interactive Matrix */}
-      <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 border-b border-[#E8E1D5]">
-        {/* Subtle radial ambient highlight */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-[#C85A32]/4 rounded-full blur-3xl pointer-events-none" />
+    <>
+      <Hero />
+      <Purpose />
+      <FocusAreas />
+      <MissionVision />
+      <Principles />
+      <Approach />
+      <Questions />
+      <Closing />
+    </>
+  );
+}
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
-            {/* Left Column: Core Message & Primary CTAs */}
-            <div className="lg:col-span-7 flex flex-col items-start">
-              {/* Institutional Tag Badge */}
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E8E1D5] shadow-xs mb-6">
-                <span className="w-2 h-2 rounded-full bg-[#C85A32]" aria-hidden="true" />
-                <span className="text-[11px] font-mono uppercase tracking-[0.2em] font-semibold text-[#142C20]">
-                  Civic Fairness & Public Advocacy
-                </span>
-              </div>
+/* ------------------------------------------------------------------ A: Hero */
 
-              <h1 className="font-editorial text-4xl sm:text-6xl lg:text-[68px] text-[#142C20] font-semibold tracking-tight leading-[1.08] mb-6">
-                A fairer future. <br />
-                <span className="italic font-normal text-[#204533] underline decoration-[#C85A32]/30 decoration-wavy decoration-1 underline-offset-8">
-                  Built together.
-                </span>
-              </h1>
-
-              <p className="text-lg sm:text-xl text-[#365342] leading-relaxed max-w-2xl mb-8 font-normal">
-                {organizationData.purposeStatement}
-              </p>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
-                <Link
-                  to="/initiatives"
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-2xl bg-[#142C20] hover:bg-[#204533] text-[#FAF8F5] text-base font-semibold shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32] group"
-                >
-                  <span>Explore Proposed Initiatives</span>
-                  <ArrowRight className="w-4 h-4 text-[#C85A32] group-hover:translate-x-1 transition-transform" />
-                </Link>
-
-                <Link
-                  to="/contact"
-                  className="inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-white hover:bg-[#F4EFE6] text-[#142C20] text-base font-semibold border border-[#E8E1D5] shadow-xs hover:shadow-sm hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32]"
-                >
-                  <span>Contact The Foundation</span>
-                  <ArrowUpRight className="w-4 h-4 text-[#8C7A68]" />
-                </Link>
-              </div>
-
-              {/* Baseline Credibility Indicators */}
-              <div className="mt-12 pt-8 border-t border-[#E8E1D5] w-full grid grid-cols-2 sm:grid-cols-3 gap-6">
-                <div>
-                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#8C7A68]">
-                    Foundational Axis
-                  </div>
-                  <div className="text-sm font-semibold text-[#142C20] mt-1">
-                    Procedural Justice
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#8C7A68]">
-                    Civic Approach
-                  </div>
-                  <div className="text-sm font-semibold text-[#142C20] mt-1">
-                    Voluntary Dialogue
-                  </div>
-                </div>
-                <div className="col-span-2 sm:col-span-1">
-                  <div className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#8C7A68]">
-                    Engagement
-                  </div>
-                  <div className="text-sm font-semibold text-[#142C20] mt-1">
-                    Grassroots Literacy
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Interactive Equilibrium & Principles Matrix */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end">
-              <div className="w-full max-w-lg bg-white rounded-3xl p-7 sm:p-8 border border-[#E8E1D5] shadow-xl relative overflow-hidden">
-                {/* Decorative terracotta radial aura */}
-                <div className="absolute top-0 right-0 w-36 h-36 bg-[#C85A32]/8 rounded-bl-full pointer-events-none" />
-
-                {/* Card Header */}
-                <div className="flex items-center justify-between border-b border-[#E8E1D5] pb-5 mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#142C20] flex items-center justify-center text-[#FAF8F5] shadow-xs">
-                      <Scale className="w-5 h-5 text-[#C85A32]" />
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#8C7A68] block">
-                        Equilibrium Matrix
-                      </span>
-                      <h3 className="font-editorial text-lg font-bold text-[#142C20]">
-                        Principles of Equity
-                      </h3>
-                    </div>
-                  </div>
-                  <span className="text-[11px] px-2.5 py-1 rounded-full bg-[#F4EFE6] text-[#204533] font-medium border border-[#E8E1D5]">
-                    Interactive
-                  </span>
-                </div>
-
-                {/* Interactive Selector Tabs */}
-                <div className="grid grid-cols-2 gap-2 mb-6" role="tablist" aria-label="Guiding Principles Selection">
-                  {organizationData.guidingPrinciples.map((principle, index) => {
-                    const isActive = index === activePrincipleIndex;
-                    return (
-                      <button
-                        key={principle.title}
-                        role="tab"
-                        aria-selected={isActive}
-                        aria-controls="principle-detail-panel"
-                        onClick={() => setActivePrincipleIndex(index)}
-                        className={`text-left p-3 rounded-xl border text-xs font-semibold transition-all duration-200 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#C85A32] ${
-                          isActive 
-                            ? 'bg-[#142C20] text-[#FAF8F5] border-[#142C20] shadow-sm' 
-                            : 'bg-[#FAF8F5] text-[#204533] border-[#E8E1D5] hover:bg-[#F4EFE6]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
-                            isActive ? 'bg-[#C85A32] text-white' : 'bg-[#E8E1D5] text-[#142C20]'
-                          }`}>
-                            0{index + 1}
-                          </span>
-                        </div>
-                        <span className="line-clamp-1">{principle.title}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Active Principle Detail Display */}
-                <div 
-                  id="principle-detail-panel"
-                  role="tabpanel"
-                  className="p-5 rounded-2xl bg-[#FAF8F5] border border-[#E8E1D5] min-h-[140px] flex flex-col justify-between transition-all"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#C85A32]">
-                        Pillar 0{activePrincipleIndex + 1} &bull; Focus
-                      </span>
-                      <span className="text-[11px] text-[#6E8276]">Core Mandate</span>
-                    </div>
-                    <h4 className="font-editorial text-lg font-bold text-[#142C20] mb-2">
-                      {activePrinciple.title}
-                    </h4>
-                    <p className="text-xs sm:text-sm text-[#465F50] leading-relaxed">
-                      {activePrinciple.description}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Bottom link */}
-                <div className="mt-6 pt-5 border-t border-[#E8E1D5] flex items-center justify-between text-xs text-[#6B8073]">
-                  <span>Provisional civic charter</span>
-                  <Link 
-                    to="/about" 
-                    className="font-semibold text-[#C85A32] hover:text-[#A54421] inline-flex items-center gap-1 focus-visible:ring-1 focus-visible:ring-[#C85A32] rounded-xs"
-                  >
-                    <span>Read foundational ethos</span>
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
+function Hero() {
+  return (
+    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-ivory">
+      <div className="container-x grid items-center gap-12 pb-14 pt-10 sm:pt-14 lg:grid-cols-[3fr_2fr] lg:gap-8 lg:pb-24 lg:pt-12">
+        <div>
+          <p className="eyebrow enter" style={idx(0)}>
+            Fairness. Dignity. Possibility.
+          </p>
+          <h1 id="hero-title" className="text-hero mt-6 sm:mt-7">
+            <span className="enter block" style={idx(1)}>
+              A fairer future.
+            </span>
+            <span className="enter block italic text-brand" style={idx(2)}>
+              Built together.
+            </span>
+          </h1>
+          <p className="text-lead enter mt-7 max-w-[34rem] text-ink-soft sm:mt-8" style={idx(3)}>
+            Fairclaim Foundation aims to make fairness easier to understand and pursue—through public education,
+            constructive dialogue, and a shared commitment to equitable opportunity.
+          </p>
+          <div className="enter mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4" style={idx(4)}>
+            <ButtonLink to="/#focus-areas">Explore our focus areas</ButtonLink>
+            <ButtonLink to="/#purpose" variant="ghost" arrow={false}>
+              Discover our purpose
+            </ButtonLink>
           </div>
-        </div>
-      </section>
-
-      {/* 2. Full-Width Infinite Architectural Ticker */}
-      <section className="bg-[#142C20] text-[#FAF8F5] py-4 overflow-hidden border-y border-[#204533] select-none" aria-label="Core Civic Tenets Marquee">
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-8 text-xs font-mono tracking-[0.25em] uppercase text-[#D5CBBC]">
-          <span>Procedural Fairness</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Natural Justice</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Community Dignity</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Constructive Mediation</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Public Rights Literacy</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Institutional Transparency</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Ethical Neutrality</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Procedural Fairness</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Natural Justice</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Community Dignity</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Constructive Mediation</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Public Rights Literacy</span>
-          <span className="text-[#C85A32]">✦</span>
-          <span>Institutional Transparency</span>
-          <span className="text-[#C85A32]">✦</span>
-        </div>
-      </section>
-
-      {/* 3. Purpose Callout & Foundational Thesis */}
-      <section className="py-20 sm:py-28 bg-[#F4EFE6] border-b border-[#E8E1D5]">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <span className="text-xs font-mono font-semibold uppercase tracking-[0.25em] text-[#C85A32] mb-4 inline-block">
-            Foundational Thesis
-          </span>
-          <blockquote className="font-editorial text-2xl sm:text-4xl md:text-[42px] text-[#142C20] font-normal leading-snug sm:leading-tight">
-            &ldquo;Every individual deserves fair proceedings, transparent institutional reasoning, and an equitable forum to be respectfully heard.&rdquo;
-          </blockquote>
-          <div className="w-16 h-0.5 bg-[#C85A32] mx-auto my-8 opacity-60" />
-          <p className="text-base sm:text-lg text-[#3D5A47] max-w-2xl mx-auto leading-relaxed">
-            FAIRCLAIM FOUNDATION exists to ensure that complex administrative mechanisms and legal obscurities do not stand as insurmountable barriers to civic dignity, fair dispute resolution, and community self-determination.
+          <p className="enter mt-10 flex items-center gap-4 font-serif text-lg italic text-ink-soft" style={idx(5)}>
+            <span aria-hidden="true" className="h-px w-10 bg-gold" />
+            Rooted in dignity. Guided by fairness.
           </p>
         </div>
-      </section>
 
-      {/* 4. Strategic Orientation: Distinct Dual Monoliths (Mission vs Vision) */}
-      <section className="py-20 sm:py-28 bg-white border-b border-[#E8E1D5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-              Strategic Orientation
-            </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold text-[#142C20]">
-              Our Mission & Vision
+        {/* Emblem medallion */}
+        <div className="relative mx-auto aspect-square w-[min(80vw,23rem)] lg:w-full lg:max-w-[30rem] lg:justify-self-end">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-[38%] -z-10 rounded-full bg-[radial-gradient(closest-side,rgb(0_159_227/0.22),rgb(7_93_168/0.08)_55%,transparent)]"
+          />
+          <div data-parallax className="parallax absolute -inset-[9%]" aria-hidden="true">
+            <SunriseArcs animated className="h-full w-full" />
+          </div>
+          <div className="enter-medallion absolute inset-[8%] grid place-items-center rounded-full bg-white p-[6.5%] shadow-[var(--shadow-medallion)] ring-1 ring-navy/[0.06]">
+            <Emblem priority />
+          </div>
+        </div>
+      </div>
+      <CurveEdge fill="#ffffff" />
+    </section>
+  );
+}
+
+/* --------------------------------------------------------------- B: Purpose */
+
+function Purpose() {
+  return (
+    <section id="purpose" aria-labelledby="purpose-title" className="section-y -mt-px bg-white">
+      <div className="container-x grid gap-10 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-5">
+          <p className="eyebrow" data-reveal>
+            Why Fairclaim
+          </p>
+          <h2 id="purpose-title" className="text-section mt-6" data-reveal style={idx(1)}>
+            Fairness should feel within reach.
+          </h2>
+        </div>
+        <div className="lg:col-span-6 lg:col-start-7">
+          <p className="text-lead text-ink-soft" data-reveal style={idx(2)}>
+            Understanding a process, expressing a concern, or finding a constructive way forward can feel
+            complicated. Our purpose is to help make civic understanding clearer and meaningful participation more
+            accessible.
+          </p>
+          <ul className="mt-12">
+            {purposePrinciples.map((p, i) => (
+              <li key={p.title} data-reveal style={idx(i + 3)}>
+                <Rule />
+                <div className="grid gap-1 py-6 sm:grid-cols-[11rem_1fr] sm:items-baseline sm:gap-6 sm:py-7">
+                  <h3 className="font-serif text-[1.75rem] leading-tight">{p.title}</h3>
+                  <p className="text-ink-soft">{p.description}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------------- C: Focus areas */
+
+function FocusAreas() {
+  return (
+    <section id="focus-areas" aria-labelledby="focus-title" className="relative bg-ivory pt-[4.25rem] md:pt-24 lg:pt-[7.5rem]">
+      <div className="container-x">
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-8">
+          <div className="lg:col-span-7">
+            <p className="eyebrow" data-reveal>
+              Where we aim to contribute
+            </p>
+            <h2 id="focus-title" className="text-section mt-6" data-reveal style={idx(1)}>
+              <span className="block">Four focus areas.</span>
+              <span className="block italic text-brand">One commitment to fairness.</span>
             </h2>
-            <p className="mt-3 text-base text-[#465F50]">
-              Anchored by immediate grounded civic action and oriented toward an enduring horizon of social equity.
-            </p>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
-            {/* Mission Monolith: Dark Forest Grounded Focus */}
-            <div className="p-8 sm:p-12 rounded-3xl bg-[#142C20] text-[#FAF8F5] relative overflow-hidden flex flex-col justify-between shadow-xl">
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#204533] border border-[#2E5A44] text-xs font-mono font-semibold tracking-wider uppercase text-[#C85A32] mb-8">
-                  <Compass className="w-4 h-4" />
-                  <span>The Grounded Mission</span>
-                </div>
-                <h3 className="font-editorial text-2xl sm:text-3xl font-semibold text-[#FAF8F5] mb-5 leading-snug">
-                  Democratizing procedural fairness through accessible, community-grounded guidance.
-                </h3>
-                <p className="text-[#C5D3CB] text-sm sm:text-base leading-relaxed mb-8">
-                  To identify administrative friction points, publish plain-language public rights materials, and facilitate neutral dispute mediation that empowers citizens to resolve grievances without debilitating litigation costs.
-                </p>
-                <div className="space-y-3 pt-6 border-t border-[#204533]">
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#D5CBBC]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Plain-language civic navigational toolkits</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#D5CBBC]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Voluntary, structured mediation protocols</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#D5CBBC]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Independent, uncompromised ethical neutrality</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8 border-t border-[#204533] mt-8 relative z-10">
-                <Link
-                  to="/mission-vision"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#FAF8F5] hover:text-[#C85A32] transition-colors focus-visible:ring-1 focus-visible:ring-[#C85A32] rounded-xs"
-                >
-                  <span>Explore complete mission framework</span>
-                  <ArrowRight className="w-4 h-4 text-[#C85A32]" />
-                </Link>
-              </div>
-            </div>
-
-            {/* Vision Monolith: Warm Ivory Horizon Perspective */}
-            <div className="p-8 sm:p-12 rounded-3xl bg-[#FAF8F5] border border-[#E8E1D5] relative overflow-hidden flex flex-col justify-between shadow-xs">
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#F4EFE6] border border-[#E8E1D5] text-xs font-mono font-semibold tracking-wider uppercase text-[#142C20] mb-8">
-                  <Sparkles className="w-4 h-4 text-[#C85A32]" />
-                  <span>The Enduring Vision</span>
-                </div>
-                <h3 className="font-editorial text-2xl sm:text-3xl font-semibold text-[#142C20] mb-5 leading-snug">
-                  A society where natural justice and respectful dialogue form the baseline of civic life.
-                </h3>
-                <p className="text-[#465F50] text-sm sm:text-base leading-relaxed mb-8">
-                  An inclusive civic landscape wherein every individual, regardless of socioeconomic standing, has transparent access to fair proceedings, balanced dispute settlement, and genuine civic dignity.
-                </p>
-                <div className="space-y-3 pt-6 border-t border-[#E8E1D5]">
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#204533]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Transparent institutional claims procedures</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#204533]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Non-adversarial community dispute settlement</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs sm:text-sm text-[#204533]">
-                    <Check className="w-4 h-4 text-[#C85A32] shrink-0" />
-                    <span>Civic empathy replacing bureaucratic indifference</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-8 border-t border-[#E8E1D5] mt-8 relative z-10">
-                <Link
-                  to="/mission-vision"
-                  className="inline-flex items-center gap-2 text-sm font-semibold text-[#142C20] hover:text-[#C85A32] transition-colors focus-visible:ring-1 focus-visible:ring-[#C85A32] rounded-xs"
-                >
-                  <span>Explore strategic objectives</span>
-                  <ArrowRight className="w-4 h-4 text-[#C85A32]" />
-                </Link>
-              </div>
-            </div>
-          </div>
+          <p className="text-lead text-ink-soft lg:col-span-4 lg:col-start-9" data-reveal style={idx(2)}>
+            Our proposed areas of work bring together knowledge, dialogue, and inquiry to support a more informed and
+            equitable society.
+          </p>
         </div>
-      </section>
 
-      {/* 5. Asymmetric Bento Grid: Foundation Objectives */}
-      <section className="py-20 sm:py-28 bg-[#FAF8F5] border-b border-[#E8E1D5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-                Operational Framework
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold text-[#142C20]">
-                Four Core Objectives
-              </h2>
-            </div>
-            <p className="text-sm text-[#465F50] max-w-md leading-relaxed">
-              Systematic operational commitments guiding the foundation&apos;s development and multi-stakeholder programming.
-            </p>
-          </div>
-
-          {/* Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-            
-            {/* Bento Card 1: Wide Accent Card */}
-            <div className="md:col-span-7 bg-white rounded-3xl p-8 sm:p-10 border border-[#E8E1D5] shadow-xs flex flex-col justify-between hover:border-[#142C20]/30 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-mono font-bold text-[#8C7A68] bg-[#F4EFE6] px-3 py-1 rounded-full border border-[#E8E1D5]">
-                    Objective 01
-                  </span>
-                  <span className="text-xs font-semibold text-[#C85A32] uppercase tracking-wider">
-                    {organizationData.coreObjectives[0].focus}
-                  </span>
+        <ol className="mt-12 md:mt-16">
+          {focusAreas.map((area, i) => (
+            <li key={area.id} data-reveal style={idx(i + 1)}>
+              <article className="group relative isolate grid gap-x-8 gap-y-3 border-t border-line py-9 before:absolute before:inset-y-0 before:-inset-x-4 before:-z-10 before:rounded-[6px] before:bg-brand/[0.05] before:opacity-0 before:transition-opacity before:duration-200 focus-within:before:opacity-100 hover:before:opacity-100 sm:-mx-0 md:grid-cols-[4.5rem_minmax(0,1fr)] md:py-11 lg:grid-cols-[6rem_minmax(0,1fr)_17rem]">
+                <span
+                  aria-hidden="true"
+                  data-draw
+                  style={idx(i)}
+                  className="absolute -top-px left-0 h-px w-full bg-gold/70"
+                />
+                <span aria-hidden="true" className="font-serif text-[2rem] leading-none text-gold-ink md:text-[2.75rem]">
+                  {area.number}
+                </span>
+                <div className="md:col-start-2">
+                  <h3 className="font-serif text-[1.65rem] leading-[1.15] sm:text-[2rem] lg:text-[2.35rem]">{area.title}</h3>
+                  <p className="mt-4 max-w-[38rem] text-ink-soft">{area.summary}</p>
                 </div>
-                <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-[#142C20] mb-4">
-                  {organizationData.coreObjectives[0].title}
-                </h3>
-                <p className="text-sm sm:text-base text-[#465F50] leading-relaxed mb-6">
-                  {organizationData.coreObjectives[0].summary}
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[#E8E1D5] flex items-center justify-between text-xs text-[#8C7A68]">
-                <span>Grassroots accessibility</span>
-                <span className="text-[#142C20] font-semibold">Priority Axis &bull; 2026-2027</span>
-              </div>
-            </div>
-
-            {/* Bento Card 2: Square Card */}
-            <div className="md:col-span-5 bg-white rounded-3xl p-8 border border-[#E8E1D5] shadow-xs flex flex-col justify-between hover:border-[#142C20]/30 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-mono font-bold text-[#8C7A68] bg-[#F4EFE6] px-3 py-1 rounded-full border border-[#E8E1D5]">
-                    Objective 02
-                  </span>
-                  <span className="text-xs font-semibold text-[#C85A32] uppercase tracking-wider">
-                    {organizationData.coreObjectives[1].focus}
-                  </span>
-                </div>
-                <h3 className="font-editorial text-2xl font-bold text-[#142C20] mb-4">
-                  {organizationData.coreObjectives[1].title}
-                </h3>
-                <p className="text-sm text-[#465F50] leading-relaxed mb-6">
-                  {organizationData.coreObjectives[1].summary}
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[#E8E1D5] text-xs text-[#8C7A68]">
-                <span>Neutral forum facilitation</span>
-              </div>
-            </div>
-
-            {/* Bento Card 3: Square Card */}
-            <div className="md:col-span-5 bg-white rounded-3xl p-8 border border-[#E8E1D5] shadow-xs flex flex-col justify-between hover:border-[#142C20]/30 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-mono font-bold text-[#8C7A68] bg-[#F4EFE6] px-3 py-1 rounded-full border border-[#E8E1D5]">
-                    Objective 03
-                  </span>
-                  <span className="text-xs font-semibold text-[#C85A32] uppercase tracking-wider">
-                    {organizationData.coreObjectives[2].focus}
-                  </span>
-                </div>
-                <h3 className="font-editorial text-2xl font-bold text-[#142C20] mb-4">
-                  {organizationData.coreObjectives[2].title}
-                </h3>
-                <p className="text-sm text-[#465F50] leading-relaxed mb-6">
-                  {organizationData.coreObjectives[2].summary}
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[#E8E1D5] text-xs text-[#8C7A68]">
-                <span>Evidence-based whitepapers</span>
-              </div>
-            </div>
-
-            {/* Bento Card 4: Wide Accent Card */}
-            <div className="md:col-span-7 bg-white rounded-3xl p-8 sm:p-10 border border-[#E8E1D5] shadow-xs flex flex-col justify-between hover:border-[#142C20]/30 transition-colors">
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-mono font-bold text-[#8C7A68] bg-[#F4EFE6] px-3 py-1 rounded-full border border-[#E8E1D5]">
-                    Objective 04
-                  </span>
-                  <span className="text-xs font-semibold text-[#C85A32] uppercase tracking-wider">
-                    {organizationData.coreObjectives[3].focus}
-                  </span>
-                </div>
-                <h3 className="font-editorial text-2xl sm:text-3xl font-bold text-[#142C20] mb-4">
-                  {organizationData.coreObjectives[3].title}
-                </h3>
-                <p className="text-sm sm:text-base text-[#465F50] leading-relaxed mb-6">
-                  {organizationData.coreObjectives[3].summary}
-                </p>
-              </div>
-              <div className="pt-4 border-t border-[#E8E1D5] flex items-center justify-between text-xs text-[#8C7A68]">
-                <span>Workshops & public guides</span>
-                <span className="text-[#142C20] font-semibold">Civic Empowerment</span>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Proposed Focus Areas / Initiatives Preview */}
-      <section className="py-20 sm:py-28 bg-white border-b border-[#E8E1D5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 gap-4">
-            <div>
-              <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-                Civic Initiatives
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold text-[#142C20]">
-                Proposed Focus Areas
-              </h2>
-            </div>
-            <Link
-              to="/initiatives"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-[#142C20] hover:text-[#C85A32] transition-colors focus-visible:ring-1 focus-visible:ring-[#C85A32] rounded-xs group"
-            >
-              <span>Explore all initiatives & gallery</span>
-              <ArrowRight className="w-4 h-4 text-[#C85A32] group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {proposedFocusAreas.slice(0, 3).map((area) => (
-              <div
-                key={area.id}
-                className="bg-[#FAF8F5] rounded-3xl p-8 border border-[#E8E1D5] shadow-xs flex flex-col justify-between hover:shadow-lg hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <span className="text-xs px-3 py-1 rounded-full bg-white text-[#204533] font-medium border border-[#E8E1D5]">
-                      {area.category}
-                    </span>
-                    <span className="text-xs font-mono font-semibold text-[#C85A32]">
-                      {area.status}
-                    </span>
-                  </div>
-
-                  <h3 className="font-editorial text-2xl font-bold text-[#142C20] mb-3 leading-snug group-hover:text-[#204533] transition-colors">
-                    {area.title}
-                  </h3>
-
-                  <p className="text-sm text-[#465F50] leading-relaxed mb-6">
-                    {area.summary}
+                <div className="mt-3 flex flex-col gap-4 md:col-start-2 lg:col-start-3 lg:row-start-1 lg:mt-0 lg:items-start lg:gap-3 lg:pt-3">
+                  <p className="flex items-center gap-2.5 text-[0.8125rem] font-medium text-ink-soft">
+                    <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full border-[1.5px] border-gold bg-gold-pale" />
+                    {area.status}
                   </p>
-                </div>
-
-                <div className="pt-4 border-t border-[#E8E1D5] flex items-center justify-between text-xs">
-                  <span className="text-[#8C7A68]">Action framework</span>
                   <Link
-                    to="/initiatives"
-                    className="font-semibold text-[#142C20] hover:text-[#C85A32] inline-flex items-center gap-1"
+                    to={`/initiatives#${area.id}`}
+                    className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand outline-none after:absolute after:inset-0 after:rounded-[6px] after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-brand"
                   >
-                    <span>Read scope</span>
-                    <ChevronRight className="w-3.5 h-3.5 text-[#C85A32]" />
+                    Explore this focus area
+                    <ArrowRight
+                      className="h-4 w-4 transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-1 group-focus-within:translate-x-1"
+                      aria-hidden="true"
+                    />
                   </Link>
                 </div>
-              </div>
-            ))}
+              </article>
+            </li>
+          ))}
+        </ol>
+        <div className="border-t border-line" aria-hidden="true" />
+      </div>
+      <div className="mt-[4.25rem] md:mt-24 lg:mt-[7.5rem]">
+        <CurveEdge fill="#071f46" />
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------- D: Mission & vision */
+
+function MissionVision() {
+  return (
+    <section
+      aria-labelledby="direction-title"
+      className="on-navy relative isolate -mt-px overflow-hidden bg-navy text-on-navy"
+    >
+      <div data-parallax className="parallax pointer-events-none absolute -right-32 -top-64 -z-10 w-[30rem] max-w-none opacity-90 sm:-right-40 sm:-top-56 sm:w-[36rem] lg:-right-16 lg:-top-72 lg:w-[46rem]">
+        <SunriseOnNavy className="h-full w-full" />
+      </div>
+
+      <div className="container-x pb-20 pt-10 md:pb-28 md:pt-14 lg:pb-36 lg:pt-16">
+        <p className="eyebrow" data-reveal>
+          Our direction
+        </p>
+        <h2 id="direction-title" className="text-section mt-6 max-w-3xl text-on-navy" data-reveal style={idx(1)}>
+          <span className="block">Clear in purpose.</span>
+          <span className="block italic text-gold">Shared in possibility.</span>
+        </h2>
+
+        <div className="relative mt-14 md:mt-20">
+          <div className="absolute left-0 top-0 h-px w-full bg-white/15" aria-hidden="true" />
+          <div
+            data-draw
+            className="absolute left-0 top-0 h-px w-full bg-gold/80"
+            aria-hidden="true"
+          />
+          <div className="grid gap-12 pt-10 md:grid-cols-2 md:gap-0 md:pt-14">
+            <div className="md:pr-12 lg:pr-20" data-reveal style={idx(2)}>
+              <h3 className="eyebrow !text-gold">Our mission</h3>
+              <p className="mt-6 max-w-[30rem] font-serif text-[1.55rem] leading-[1.38] text-on-navy sm:text-[1.85rem]">
+                {mission}
+              </p>
+            </div>
+            <div className="relative md:border-l md:border-white/15 md:pl-12 lg:pl-20" data-reveal style={idx(3)}>
+              <span
+                aria-hidden="true"
+                className="absolute -top-[calc(2.5rem+0.3rem)] left-0 hidden h-[0.6rem] w-[0.6rem] -translate-x-1/2 rounded-full bg-gold md:block md:-top-[calc(3.5rem+0.3rem)]"
+              />
+              <h3 className="eyebrow !text-gold">Our vision</h3>
+              <p className="mt-6 max-w-[30rem] font-serif text-[1.55rem] leading-[1.38] text-on-navy sm:text-[1.85rem]">
+                {vision}
+              </p>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* 7. Community Engagement Gallery Preview with Modal Interaction */}
-      <section className="py-20 sm:py-28 bg-[#FAF8F5] border-b border-[#E8E1D5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-              Community Engagement
-            </span>
-            <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold text-[#142C20]">
-              Engagement Concepts
-            </h2>
-            <p className="mt-3 text-base text-[#465F50]">
-              Click any concept preview card to inspect the collaborative methodology in high detail.
+        <div className="mt-14 md:mt-20" data-reveal style={idx(4)}>
+          <ButtonLink to="/mission-vision" variant="gold">
+            Read our mission &amp; vision
+          </ButtonLink>
+        </div>
+      </div>
+      <CurveEdge fill="#faf9f5" />
+    </section>
+  );
+}
+
+/* --------------------------------------------------------- E: Principles */
+
+function Principles() {
+  return (
+    <section aria-labelledby="principles-title" className="section-y -mt-px bg-ivory">
+      <div className="container-x grid gap-12 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-5">
+          <div className="lg:sticky lg:top-32">
+            <p className="eyebrow" data-reveal>
+              What guides us
             </p>
+            <h2 id="principles-title" className="text-section mt-6" data-reveal style={idx(1)}>
+              The principles behind every step.
+            </h2>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {galleryItems.map((item) => (
-              <div
-                key={item.id}
-                className="group rounded-3xl bg-white border border-[#E8E1D5] overflow-hidden shadow-xs hover:border-[#142C20]/40 hover:shadow-lg transition-all duration-300 flex flex-col"
-              >
-                {/* Visual conceptual motif */}
-                <button
-                  type="button"
-                  onClick={() => handleOpenGalleryModal(item)}
-                  className="w-full h-44 bg-[#142C20] flex items-center justify-center p-6 text-center relative overflow-hidden group-hover:bg-[#1B3B2B] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#C85A32]"
-                  aria-label={`Enlarge ${item.title}`}
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center text-[#FAF8F5] mb-2 group-hover:scale-110 transition-transform">
-                    {item.visualTheme === 'dialogue' && <Users className="w-7 h-7 text-[#C85A32]" />}
-                    {item.visualTheme === 'education' && <BookOpen className="w-7 h-7 text-[#FAF8F5]" />}
-                    {item.visualTheme === 'justice' && <Scale className="w-7 h-7 text-[#C85A32]" />}
-                    {item.visualTheme === 'community' && <Sparkles className="w-7 h-7 text-[#FAF8F5]" />}
-                  </div>
-                  <span className="absolute bottom-3 right-3 text-[11px] font-mono px-2 py-0.5 rounded-md bg-black/50 text-white opacity-80 group-hover:opacity-100">
-                    Preview
-                  </span>
-                </button>
-
-                <div className="p-6 flex flex-col flex-1 justify-between">
-                  <div>
-                    <span className="text-[11px] font-mono font-semibold text-[#C85A32] uppercase tracking-wider block mb-1">
-                      {item.category}
-                    </span>
-                    <h3 className="font-editorial text-lg font-bold text-[#142C20] mb-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-xs text-[#465F50] line-clamp-2 leading-relaxed">
-                      {item.caption}
-                    </p>
-                  </div>
-                  <div className="mt-4 pt-3 border-t border-[#E8E1D5] flex items-center justify-between text-xs">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenGalleryModal(item)}
-                      className="font-semibold text-[#142C20] hover:text-[#C85A32] inline-flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Inspect schematic</span>
-                      <ChevronRight className="w-3.5 h-3.5 text-[#C85A32]" />
-                    </button>
-                  </div>
+        </div>
+        <ol className="lg:col-span-6 lg:col-start-7">
+          {guidingPrinciples.map((p, i) => (
+            <li key={p.title} className="relative border-t border-line py-8 first:pt-0 first:border-t-0 md:py-10 md:first:pt-0" data-reveal style={idx(i === 0 ? 1 : 0)}>
+              <div className="grid grid-cols-[3.25rem_1fr] gap-x-3 sm:grid-cols-[4.5rem_1fr]">
+                <span aria-hidden="true" className="font-serif text-[1.5rem] leading-[1.3] text-gold-ink sm:text-[1.75rem]">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                <div>
+                  <h3 className="font-serif text-[1.65rem] leading-tight sm:text-[2rem]">{p.title}</h3>
+                  <p className="mt-3 max-w-md text-ink-soft">{p.description}</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Why It Matters: Magazine Editorial Spread */}
-      <section className="py-20 sm:py-28 bg-[#F4EFE6] border-b border-[#E8E1D5]">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
-            <div className="md:col-span-5">
-              <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-                The Societal Need
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold text-[#142C20] leading-tight">
-                Why procedural fairness is fundamental.
-              </h2>
-            </div>
-            <div className="md:col-span-7 space-y-4 text-sm sm:text-base text-[#365342] leading-relaxed">
-              <p>
-                When administrative decisions lack transparency or when dispute resolution is out of reach for ordinary individuals, community cohesion erodes. Procedural fairness is not a technical legal formality—it is a lived human experience that affirms personal dignity and civic respect.
-              </p>
-              <p>
-                By building awareness of fair hearing standards, promoting accessible grievance redress mechanisms, and providing neutral spaces for voluntary mediation, FAIRCLAIM FOUNDATION aims to cultivate a durable culture of civic equity across all communities.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. Final Call to Action Monolith */}
-      <section className="py-20 sm:py-28 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-10 sm:p-16 rounded-3xl bg-[#142C20] text-[#FAF8F5] text-center flex flex-col items-center shadow-2xl relative overflow-hidden">
-            {/* Subtle radial ambient light */}
-            <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#C85A32]/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 max-w-2xl">
-              <span className="text-xs font-mono font-semibold uppercase tracking-[0.25em] text-[#C85A32] block mb-4">
-                Join The Dialogue
-              </span>
-              <h2 className="font-editorial text-3xl sm:text-4xl md:text-5xl font-semibold mb-5 text-[#FAF8F5] leading-tight">
-                Connect with FAIRCLAIM FOUNDATION
-              </h2>
-              <p className="text-[#C5D3CB] text-base sm:text-lg leading-relaxed mb-10">
-                Whether you represent a community organization, seek informational guidance, or wish to explore collaborative civic initiatives, our doors are open.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link
-                  to="/contact"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-[#C85A32] hover:bg-[#A54421] text-white text-base font-semibold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-white"
-                >
-                  <span>Submit an Inquiry</span>
-                  <ArrowRight className="w-4 h-4" />
-                </Link>
-                <Link
-                  to="/about"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-[#204533] hover:bg-[#2A5942] text-[#FAF8F5] text-base font-medium border border-[#2E5A44] transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32]"
-                >
-                  <span>Learn About Our Principles</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Accessible Gallery Image Modal */}
-      <ImageModal
-        item={selectedGalleryItem}
-        isOpen={isModalOpen}
-        onClose={handleCloseGalleryModal}
-      />
-    </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
   );
-};
+}
+
+/* ----------------------------------------------------------- F: Approach */
+
+function Approach() {
+  return (
+    <section aria-labelledby="approach-title" className="section-y bg-white">
+      <div className="container-x">
+        <p className="eyebrow" data-reveal>
+          From purpose to possibility
+        </p>
+        <h2 id="approach-title" className="text-section mt-6 max-w-3xl" data-reveal style={idx(1)}>
+          <span className="block">Listen carefully.</span>
+          <span className="block">Understand clearly.</span>
+          <span className="block italic text-brand">Move forward together.</span>
+        </h2>
+        <p className="mt-6 text-sm font-semibold tracking-wide text-ink-soft" data-reveal style={idx(2)}>
+          A proposed approach, not a guaranteed service process.
+        </p>
+
+        <ol className="relative mt-14 grid gap-12 md:mt-20 md:grid-cols-3 md:gap-10">
+          <span
+            aria-hidden="true"
+            data-draw
+            className="absolute left-6 top-6 hidden h-px bg-gradient-to-r from-gold via-gold to-transparent md:block md:w-[calc(100%-1.5rem)]"
+          />
+          <span
+            aria-hidden="true"
+            data-draw="y"
+            className="absolute bottom-10 left-6 top-6 w-px bg-gradient-to-b from-gold to-gold/20 md:hidden"
+          />
+          {approachSteps.map((step, i) => (
+            <li key={step.title} className="relative pl-[4.5rem] md:pl-0 md:pt-[5rem]" data-reveal style={idx(i + 2)}>
+              <span
+                aria-hidden="true"
+                className="absolute left-0 top-0 grid h-12 w-12 place-items-center rounded-full border border-gold bg-white font-serif text-xl text-navy shadow-[0_0_0_6px_#fff]"
+              >
+                {i + 1}
+              </span>
+              <h3 className="font-serif text-[1.85rem] leading-tight sm:text-[2.1rem]">{step.title}</h3>
+              <p className="mt-3 max-w-xs text-ink-soft">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+
+        <p
+          className="mt-14 max-w-2xl border-l-2 border-gold pl-5 text-[0.9375rem] text-ink-soft md:mt-20"
+          data-reveal
+        >
+          Sending an enquiry does not open a legal case or guarantee assistance. Fairclaim Foundation’s focus areas are
+          proposed, and this approach describes how it intends to work as they develop.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------- G: Questions */
+
+function Questions() {
+  return (
+    <section aria-labelledby="faq-title" className="section-y bg-ivory">
+      <div className="container-x grid gap-10 lg:grid-cols-12 lg:gap-8">
+        <div className="lg:col-span-4">
+          <p className="eyebrow" data-reveal>
+            Questions
+          </p>
+          <h2 id="faq-title" className="text-section mt-6" data-reveal style={idx(1)}>
+            A little clarity before we connect.
+          </h2>
+        </div>
+        <div className="lg:col-span-7 lg:col-start-6" data-reveal style={idx(2)}>
+          <Faq items={faqs} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------------- H: Closing */
+
+function Closing() {
+  return (
+    <section aria-labelledby="closing-title" className="bg-ivory pb-[4.25rem] md:pb-24 lg:pb-[7.5rem]">
+      <div className="container-x">
+        <div
+          className="relative isolate overflow-hidden rounded-[6px] border border-gold/40 bg-[linear-gradient(120deg,#f5e8bf_0%,#f8eecb_45%,#fbf4de_100%)] px-6 py-14 sm:px-12 sm:py-20 lg:px-20 lg:py-24"
+          data-reveal="fade"
+        >
+          <RingAccent
+            tone="gold"
+            className="pointer-events-none absolute -right-20 -top-20 -z-10 h-56 w-56 sm:-bottom-48 sm:-right-24 sm:top-auto sm:h-[28rem] sm:w-[28rem] lg:-right-28 lg:bottom-auto lg:top-1/2 lg:h-[30rem] lg:w-[30rem] lg:-translate-y-1/2 xl:-right-16 xl:h-[34rem] xl:w-[34rem]"
+          />
+          <p className="eyebrow">An invitation</p>
+          <h2 id="closing-title" className="text-section mt-6 max-w-2xl">
+            <span className="block">A fairer future begins</span>
+            <span className="block italic text-brand">with a conversation.</span>
+          </h2>
+          <p className="text-lead mt-7 max-w-lg text-ink">
+            Interested in our purpose, proposed initiatives, or opportunities to collaborate? Share your perspective
+            and help shape what comes next.
+          </p>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+            <ButtonLink to="/contact">Start a conversation</ButtonLink>
+            <ButtonLink to="/about" variant="ghost" arrow={false}>
+              Learn about the foundation
+            </ButtonLink>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

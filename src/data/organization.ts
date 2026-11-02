@@ -1,108 +1,129 @@
 /**
- * Centralized Organization Metadata & Draft Content
- * 
- * Content Integrity Note:
- * In accordance with foundation guidelines, all facts are grounded in verified client input.
- * Operational metrics, founding dates, registration numbers, tax exemption statuses, and 
- * specific leadership rosters are withheld until officially confirmed by FAIRCLAIM FOUNDATION.
+ * Organization facts. Only confirmed facts are rendered publicly.
+ *
+ * Nothing here has been independently verified. Registration details,
+ * founding date, leadership, programs and contact channels are intentionally
+ * absent until the foundation confirms them.
  */
 
-export interface OrganizationInfo {
-  name: string;
-  legalStatusNote: string;
-  tagline: string;
-  purposeStatement: string;
-  shortDescription: string;
-  extendedDescription: string;
+export const organization = {
+  name: 'FAIRCLAIM FOUNDATION',
+  shortName: 'Fairclaim Foundation',
+  tagline: 'A fairer future. Built together.',
+  developerCredit: 'Website developed by Legendary One Technologies',
+  statusNote:
+    'Fairclaim Foundation’s registration status, leadership and programs are still being confirmed. This website describes its purpose and proposed directions only.',
+
+  /** Confirmed public contact details. Leave empty until the foundation confirms them. */
   contact: {
-    email?: string;
-    phone?: string;
-    addressNote?: string;
-    operatingHours?: string;
-  };
-  socialLinks: {
-    platform: string;
-    url?: string;
-    label: string;
-  }[];
-  guidingPrinciples: {
-    title: string;
-    description: string;
-  }[];
-  coreObjectives: {
-    id: string;
-    title: string;
-    summary: string;
-    focus: string;
-  }[];
-  developerAgency: {
-    name: string;
-    label: string;
-  };
+    email: '' as string,
+    phone: '' as string,
+    address: '' as string,
+  },
+
+  /** Verified social profiles only. */
+  social: [] as { platform: string; url: string }[],
+};
+
+/**
+ * A provisional routing address was supplied in earlier drafts. It is kept
+ * here for the handoff only and is NOT displayed anywhere on the website.
+ */
+export const provisionalContact = {
+  email: 'contact@fairclaimfoundation.org',
+  confirmed: false,
+};
+
+export const hasConfirmedContact = Boolean(
+  organization.contact.email || organization.contact.phone || organization.contact.address,
+);
+
+export interface Principle {
+  title: string;
+  description: string;
 }
 
-export const organizationData: OrganizationInfo = {
-  name: "FAIRCLAIM FOUNDATION",
-  legalStatusNote: "Organizational registration and operational disclosures are currently undergoing formal institutional verification.",
-  tagline: "A fairer future. Built together.",
-  purposeStatement: "Dedicated to advancing procedural justice, equitable community opportunities, and transparent civic dialogue across all societal levels.",
-  shortDescription: "FAIRCLAIM FOUNDATION is an independent civic initiative established to champion fairness, systemic transparency, and community-driven access to opportunities.",
-  extendedDescription: "Rooted in the fundamental premise that every individual and community deserves equitable consideration, FAIRCLAIM FOUNDATION brings together advocates, educators, and citizens to foster dialogue, inform civic understanding, and promote constructive dispute resolution.",
-  contact: {
-    // Official contact channels will be updated upon foundation confirmation.
-    email: "contact@fairclaimfoundation.org", // provisional operational routing email
-    addressNote: "Registered headquarters information will be published following official administrative validation.",
-    operatingHours: "Monday – Friday: 9:00 AM – 5:00 PM",
+/** Short principles shown in the “Why Fairclaim” section. */
+export const purposePrinciples: Principle[] = [
+  { title: 'Clarity', description: 'Make complex ideas easier to understand.' },
+  { title: 'Dignity', description: 'Keep people and their perspectives at the center.' },
+  { title: 'Participation', description: 'Create room for informed, constructive dialogue.' },
+];
+
+/** The four guiding principles. */
+export const guidingPrinciples: Principle[] = [
+  {
+    title: 'Procedural fairness',
+    description:
+      'Fair processes begin with balanced consideration, clear reasoning, and the opportunity to be heard.',
   },
-  socialLinks: [
-    // Empty or omitted until official verified handles are provided by the client
-  ],
-  guidingPrinciples: [
-    {
-      title: "Procedural Fairness",
-      description: "Ensuring decision-making processes are balanced, unbiased, transparent, and respectful of every stakeholder's perspective."
-    },
-    {
-      title: "Community Dignity",
-      description: "Upholding the inherent worth and self-determination of all individuals by removing barriers to informed civic participation."
-    },
-    {
-      title: "Open Collaboration",
-      description: "Engaging in respectful partnerships with community organizations, civic leaders, and institutions to achieve sustainable common ground."
-    },
-    {
-      title: "Responsible Stewardship",
-      description: "Operating with unyielding ethical rigor, financial accountability, and transparent communication across every initiative."
-    }
-  ],
-  coreObjectives: [
-    {
-      id: "obj-1",
-      title: "Promote Equitable Access & Advocacy",
-      summary: "Broaden understanding of procedural fairness and empower underserved groups with knowledge of their fundamental rights and access points.",
-      focus: "Civic Empowerment"
-    },
-    {
-      id: "obj-2",
-      title: "Facilitate Community Mediation & Dialogue",
-      summary: "Provide neutral, constructive forums for community dialogue, conflict prevention, and collaborative problem-solving.",
-      focus: "Constructive Dialogue"
-    },
-    {
-      id: "obj-3",
-      title: "Conduct Research & Inform Policy Discussions",
-      summary: "Analyze systemic inequities, gather grounded community experiences, and contribute evidence-based insights to public discourse.",
-      focus: "Research & Insight"
-    },
-    {
-      id: "obj-4",
-      title: "Foster Public Education & Awareness",
-      summary: "Produce accessible educational materials, workshops, and informational resources that demystify administrative and civic systems.",
-      focus: "Public Education"
-    }
-  ],
-  developerAgency: {
-    name: "Legendary One Technologies",
-    label: "Website developed by Legendary One Technologies"
-  }
-};
+  {
+    title: 'Community dignity',
+    description: 'Every person deserves respect, understandable information, and room to participate.',
+  },
+  {
+    title: 'Open collaboration',
+    description: 'Progress grows through listening, shared learning, and constructive relationships.',
+  },
+  {
+    title: 'Responsible stewardship',
+    description: 'Careful decisions and clear communication are essential to earning confidence.',
+  },
+];
+
+export const mission =
+  'To advance understanding of fairness, encourage constructive civic dialogue, and support more informed participation in the processes that shape everyday life.';
+
+export const vision =
+  'A society where every person has a meaningful opportunity to be heard, understand their options, and be treated with dignity.';
+
+export interface Step {
+  title: string;
+  description: string;
+}
+
+export const approachSteps: Step[] = [
+  { title: 'Listen', description: 'Begin with people’s experiences, questions, and perspectives.' },
+  {
+    title: 'Understand',
+    description: 'Explore the information, processes, and barriers that shape the issue.',
+  },
+  {
+    title: 'Connect',
+    description: 'Identify opportunities for learning, dialogue, and constructive collaboration.',
+  },
+];
+
+export interface Faq {
+  question: string;
+  answer: string;
+  links?: { label: string; to: string }[];
+}
+
+export const faqs: Faq[] = [
+  {
+    question: 'What is Fairclaim Foundation’s focus?',
+    answer:
+      'Its stated purpose centers on fairness, civic understanding, constructive dialogue, and equitable participation.',
+  },
+  {
+    question: 'Are the listed initiatives currently active?',
+    answer:
+      'The areas presented on this website are proposed focus areas. Any confirmed program details should be published with their scope and availability.',
+    links: [{ label: 'See the proposed focus areas', to: '/initiatives' }],
+  },
+  {
+    question: 'How can I express interest in collaborating?',
+    answer: 'Use the contact page to share your area of interest and a brief introduction.',
+    links: [{ label: 'Go to the contact page', to: '/contact' }],
+  },
+  {
+    question: 'Where can I learn more about the foundation’s direction?',
+    answer:
+      'Visit the About and Mission & Vision pages for more on its purpose and guiding principles.',
+    links: [
+      { label: 'About', to: '/about' },
+      { label: 'Mission & Vision', to: '/mission-vision' },
+    ],
+  },
+];

@@ -1,525 +1,301 @@
-import React, { useState } from 'react';
-import { 
-  Mail, 
-  Send, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  ShieldCheck, 
-  Building2,
-  HelpCircle,
-  Loader2,
-  Copy,
-  Check
-} from 'lucide-react';
-import { organizationData } from '../data/organization';
-import type { 
-  ContactFormData, 
-  ContactValidationErrors 
+import { cloneElement, useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent, ReactElement, ReactNode } from 'react';
+import { Check, Info, TriangleAlert } from 'lucide-react';
+import { PageHead } from '../components/ui';
+import { idx } from '../lib/stagger';
+import { hasConfirmedContact, organization } from '../data/organization';
+import {
+  AREAS_OF_INTEREST,
+  isContactFormAvailable,
+  submitContactForm,
+  validateContactForm,
+  validateField,
 } from '../services/contact';
-import { 
-  validateContactForm, 
-  submitContactForm 
-} from '../services/contact';
+import type { ContactErrors, ContactFormData } from '../services/contact';
 
-const INQUIRY_TOPICS = [
-  "General Inquiry",
-  "Community Partnership",
-  "Civic Rights Education",
-  "Dispute Mediation Framework",
-  "Research & Policy Collaboration"
-];
+const EMPTY: ContactFormData = { fullName: '', email: '', areaOfInterest: '', organization: '', message: '' };
 
-export const Contact: React.FC = () => {
-  const [formData, setFormData] = useState<ContactFormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: ''
-  });
+const VALIDATED = new Set<string>(['fullName', 'email', 'areaOfInterest', 'message']);
 
-  const [errors, setErrors] = useState<ContactValidationErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEmailCopied, setIsEmailCopied] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{
-    type: 'success' | 'error' | 'unavailable' | null;
-    message: string;
-  }>({ type: null, message: '' });
+type Phase = 'idle' | 'sending' | 'sent' | 'failed';
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+export function Contact() {
+  const [values, setValues] = useState<ContactFormData>(EMPTY);
+  const [errors, setErrors] = useState<ContactErrors>({});
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [failure, setFailure] = useState('');
+  const successRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const onChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    if (errors[name as keyof ContactValidationErrors]) {
+    const next = { ...values, [name]: value };
+    setValues(next);
+    // Clear an error as soon as the field becomes valid
+    if (errors[name as keyof ContactErrors] && !validateField(name as keyof ContactErrors, next)) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
-  const handleSelectTopic = (topic: string) => {
-    setFormData((prev) => ({ ...prev, subject: topic }));
+  const onBlur = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const name = e.target.name as keyof ContactErrors;
+    if (!VALIDATED.has(name)) return;
+    if (!values[name].trim()) return; // don't scold fields the visitor has only tabbed through
+    setErrors((prev) => ({ ...prev, [name]: validateField(name, values) }));
   };
 
-  const handleCopyEmail = async () => {
-    if (!organizationData.contact.email) return;
-    try {
-      await navigator.clipboard.writeText(organizationData.contact.email);
-      setIsEmailCopied(true);
-      setTimeout(() => setIsEmailCopied(false), 2500);
-    } catch {
-      // Fallback if clipboard API blocked
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setSubmitStatus({ type: null, message: '' });
+    if (phase === 'sending') return;
 
-    const validationErrors = validateContactForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      const firstErrorKey = Object.keys(validationErrors)[0];
-      const element = document.getElementById(firstErrorKey);
-      element?.focus();
+    const found = validateContactForm(values);
+    setErrors(found);
+    const firstInvalid = (['fullName', 'email', 'areaOfInterest', 'message'] as const).find((k) => found[k]);
+    if (firstInvalid) {
+      formRef.current?.querySelector<HTMLElement>(`[name="${firstInvalid}"]`)?.focus();
       return;
     }
 
-    setErrors({});
-    setIsSubmitting(true);
-
-    try {
-      const response = await submitContactForm(formData);
-
-      if (response.success) {
-        setSubmitStatus({
-          type: 'success',
-          message: response.message
-        });
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          subject: '',
-          message: ''
-        });
-      } else if (response.isEndpointMissing) {
-        setSubmitStatus({
-          type: 'unavailable',
-          message: response.message
-        });
-      } else {
-        setSubmitStatus({
-          type: 'error',
-          message: response.message
-        });
-      }
-    } catch {
-      setSubmitStatus({
-        type: 'error',
-        message: 'An unexpected connection issue occurred. Your message has been retained. Please try again.'
-      });
-    } finally {
-      setIsSubmitting(false);
+    setPhase('sending');
+    setFailure('');
+    const result = await submitContactForm(values);
+    if (result.status === 'sent') {
+      setPhase('sent');
+      setValues(EMPTY);
+      requestAnimationFrame(() => successRef.current?.focus());
+    } else {
+      setPhase('failed');
+      setFailure(result.message);
     }
   };
 
+  const errorCount = Object.values(errors).filter(Boolean).length;
+
   return (
-    <div className="flex flex-col">
-      {/* Header Banner */}
-      <section className="pt-16 pb-20 md:pt-24 md:pb-28 bg-[#F4EFE6] border-b border-[#E8E1D5] relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#E8E1D5] mb-6 shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#C85A32]" aria-hidden="true" />
-              <span className="text-[11px] font-mono uppercase tracking-widest font-semibold text-[#142C20]">
-                Communications & Dialogue
-              </span>
+    <>
+      <PageHead
+        eyebrow="Contact"
+        title="Let’s begin a meaningful conversation."
+        intro="Share a question, an idea, or an interest in collaborating."
+      />
+
+      <section aria-label="Contact form" className="bg-white pb-[4.25rem] pt-12 md:pb-24 md:pt-16 lg:pb-[7.5rem]">
+        <div className="container-x grid gap-12 lg:grid-cols-12 lg:gap-10">
+          <aside className="lg:col-span-4" aria-label="Before you write">
+            <div data-reveal>
+              <h2 className="font-serif text-[1.75rem] leading-tight">Before you write</h2>
+              <ul className="mt-5 space-y-4 text-ink-soft">
+                <li className="flex gap-3">
+                  <span aria-hidden="true" className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                  <span>A few lines is plenty: what you’re interested in and a brief introduction.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span aria-hidden="true" className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                  <span>
+                    Please don’t include sensitive case documents or personal details beyond what’s needed to reply.
+                  </span>
+                </li>
+                <li className="flex gap-3">
+                  <span aria-hidden="true" className="mt-[0.7em] h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
+                  <span>
+                    Sending an enquiry does not open a legal case or guarantee assistance, and nothing here is legal
+                    advice.
+                  </span>
+                </li>
+              </ul>
             </div>
-            <h1 className="font-editorial text-4xl sm:text-6xl text-[#142C20] font-semibold tracking-tight leading-[1.1] mb-6">
-              Contact FAIRCLAIM FOUNDATION
-            </h1>
-            <p className="text-lg sm:text-xl text-[#365342] leading-relaxed">
-              We welcome dialogue with community organizers, civic partners, and individuals seeking informational guidance regarding procedural fairness and dispute mitigation.
-            </p>
-          </div>
-        </div>
-      </section>
 
-      {/* Main Form & Information Area */}
-      <section className="py-20 sm:py-28 border-b border-[#E8E1D5]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-            
-            {/* Left: Interactive Enquiry Form */}
-            <div className="lg:col-span-7 bg-white rounded-3xl p-8 sm:p-12 border border-[#E8E1D5] shadow-xs">
-              <div className="mb-8">
-                <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#C85A32] block mb-2">
-                  Direct Inquiries
-                </span>
-                <h2 className="font-editorial text-2xl sm:text-3xl font-semibold text-[#142C20] mb-2">
-                  Send a Formal Message
-                </h2>
-                <p className="text-sm text-[#465F50]">
-                  Please complete the form below. Required fields are clearly identified.
-                </p>
+            {hasConfirmedContact && (
+              <div className="mt-10 border-t border-line pt-8" data-reveal style={idx(1)}>
+                <h2 className="font-serif text-[1.5rem] leading-tight">Direct contact</h2>
+                <ul className="mt-4 space-y-2 text-ink-soft">
+                  {organization.contact.email && (
+                    <li>
+                      <a className="link-underline font-semibold text-brand" href={`mailto:${organization.contact.email}`}>
+                        {organization.contact.email}
+                      </a>
+                    </li>
+                  )}
+                  {organization.contact.phone && <li>{organization.contact.phone}</li>}
+                  {organization.contact.address && <li>{organization.contact.address}</li>}
+                </ul>
               </div>
+            )}
+          </aside>
 
-              {/* Status Notifications */}
-              {submitStatus.type === 'success' && (
-                <div 
-                  role="alert" 
-                  className="mb-8 p-6 rounded-2xl bg-[#EAF4ED] border border-[#204533]/30 text-[#142C20] flex items-start gap-4"
+          <div className="lg:col-span-7 lg:col-start-6" data-reveal="fade">
+            <div className="rounded-[6px] border border-line bg-ivory p-6 shadow-[var(--shadow-soft)] sm:p-10">
+              {phase === 'sent' ? (
+                <div
+                  ref={successRef}
+                  tabIndex={-1}
+                  role="status"
+                  className="py-6 text-center outline-none sm:py-10"
                 >
-                  <CheckCircle2 className="w-6 h-6 text-[#204533] shrink-0 mt-0.5" />
-                  <div className="text-sm leading-relaxed">
-                    <p className="font-bold text-base mb-1">Enquiry Successfully Dispatched</p>
-                    <p>{submitStatus.message}</p>
-                  </div>
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-gold bg-gold-pale text-navy">
+                    <Check className="h-6 w-6" aria-hidden="true" />
+                  </span>
+                  <h2 className="mt-6 font-serif text-[2rem] leading-tight">Thank you. Your message was sent.</h2>
+                  <p className="mx-auto mt-3 max-w-md text-ink-soft">
+                    The form was accepted by our enquiry service. We appreciate you taking the time to share your
+                    perspective.
+                  </p>
+                  <button type="button" className="btn btn-ghost mt-8" onClick={() => setPhase('idle')}>
+                    Send another message
+                  </button>
                 </div>
-              )}
-
-              {submitStatus.type === 'error' && (
-                <div 
-                  role="alert" 
-                  className="mb-8 p-6 rounded-2xl bg-[#FDF2F0] border border-[#C85A32]/40 text-[#9C381B] flex items-start gap-4"
-                >
-                  <AlertCircle className="w-6 h-6 text-[#C85A32] shrink-0 mt-0.5" />
-                  <div className="text-sm leading-relaxed">
-                    <p className="font-bold text-base mb-1">Submission Could Not Be Completed</p>
-                    <p>{submitStatus.message}</p>
-                  </div>
-                </div>
-              )}
-
-              {submitStatus.type === 'unavailable' && (
-                <div 
-                  role="alert" 
-                  className="mb-8 p-6 rounded-2xl bg-[#F4EFE6] border border-[#D5CBBC] text-[#142C20] flex items-start gap-4"
-                >
-                  <HelpCircle className="w-6 h-6 text-[#C85A32] shrink-0 mt-0.5" />
-                  <div className="text-sm leading-relaxed">
-                    <p className="font-bold text-base mb-1">Direct Correspondence Channel</p>
-                    <p className="mb-2">{submitStatus.message}</p>
-                    {organizationData.contact.email && (
+              ) : (
+                <form ref={formRef} onSubmit={onSubmit} noValidate aria-describedby="form-status">
+                  {!isContactFormAvailable && (
+                    <div className="mb-8 flex gap-3 rounded-[6px] border border-gold/60 bg-gold-pale/60 p-4 text-[0.9375rem] text-ink" role="note">
+                      <Info className="mt-0.5 h-5 w-5 shrink-0 text-gold-ink" aria-hidden="true" />
                       <p>
-                        Official Routing Email:{' '}
-                        <button
-                          type="button"
-                          onClick={handleCopyEmail}
-                          className="font-bold underline text-[#C85A32] hover:text-[#A54421] inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>{organizationData.contact.email}</span>
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
+                        <strong className="font-semibold text-navy">Online enquiries aren’t available just yet.</strong>{' '}
+                        {hasConfirmedContact
+                          ? 'Please use the direct contact details on this page instead.'
+                          : 'The foundation’s contact details will be published here once they are confirmed. Please check back soon.'}
+                      </p>
+                    </div>
+                  )}
+
+                  <div id="form-status" aria-live="polite" className="empty:hidden">
+                    {phase === 'failed' && (
+                      <div className="mb-8 flex gap-3 rounded-[6px] border border-[#b3261e]/40 bg-[#fdf1ef] p-4 text-[0.9375rem] text-[#7a1a14]" role="alert">
+                        <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                        <p>{failure}</p>
+                      </div>
+                    )}
+                    {errorCount > 0 && phase !== 'failed' && (
+                      <p className="mb-8 text-[0.9375rem] font-semibold text-[#7a1a14]">
+                        Please check {errorCount === 1 ? 'the highlighted field' : `the ${errorCount} highlighted fields`} below.
                       </p>
                     )}
                   </div>
-                </div>
-              )}
 
-              {/* Topic Selector Chips */}
-              <div className="mb-8">
-                <label className="block text-xs font-mono font-semibold uppercase tracking-wider text-[#8C7A68] mb-3">
-                  Select Topic of Inquiry:
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {INQUIRY_TOPICS.map((topic) => {
-                    const isSelected = formData.subject === topic;
-                    return (
-                      <button
-                        key={topic}
-                        type="button"
-                        onClick={() => handleSelectTopic(topic)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#C85A32] ${
-                          isSelected
-                            ? 'bg-[#142C20] text-[#FAF8F5] shadow-xs'
-                            : 'bg-[#FAF8F5] text-[#365342] border border-[#E8E1D5] hover:bg-[#F4EFE6]'
-                        }`}
+                  <div className="grid gap-6 sm:grid-cols-2">
+                    <Field label="Full name" name="fullName" error={errors.fullName} required>
+                      <input
+                        type="text"
+                        name="fullName"
+                        autoComplete="name"
+                        value={values.fullName}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className="field-input"
+                      />
+                    </Field>
+                    <Field label="Email address" name="email" error={errors.email} required>
+                      <input
+                        type="email"
+                        name="email"
+                        autoComplete="email"
+                        inputMode="email"
+                        value={values.email}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className="field-input"
+                      />
+                    </Field>
+                    <Field label="Area of interest" name="areaOfInterest" error={errors.areaOfInterest} required>
+                      <select
+                        name="areaOfInterest"
+                        value={values.areaOfInterest}
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className="field-input"
                       >
-                        {topic}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                        <option value="" disabled>
+                          Select an area
+                        </option>
+                        {AREAS_OF_INTEREST.map((a) => (
+                          <option key={a} value={a}>
+                            {a}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Organization" name="organization" hint="Optional">
+                      <input
+                        type="text"
+                        name="organization"
+                        autoComplete="organization"
+                        value={values.organization}
+                        onChange={onChange}
+                        className="field-input"
+                      />
+                    </Field>
+                    <div className="sm:col-span-2">
+                      <Field label="Message" name="message" error={errors.message} required>
+                        <textarea
+                          name="message"
+                          rows={6}
+                          value={values.message}
+                          onChange={onChange}
+                          onBlur={onBlur}
+                          className="field-input resize-y"
+                        />
+                      </Field>
+                    </div>
+                  </div>
 
-              <form onSubmit={handleSubmit} noValidate className="space-y-6">
-                {/* Full Name */}
-                <div>
-                  <label 
-                    htmlFor="fullName" 
-                    className="block text-sm font-semibold text-[#142C20] mb-2"
-                  >
-                    Full Name <span className="text-[#C85A32]" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    aria-required="true"
-                    aria-invalid={!!errors.fullName}
-                    aria-describedby={errors.fullName ? "fullName-error" : undefined}
-                    placeholder="e.g. Jane Doe"
-                    disabled={isSubmitting}
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm text-[#142C20] bg-[#FAF8F5] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C85A32] ${
-                      errors.fullName ? 'border-[#C85A32] bg-[#FDF2F0]' : 'border-[#E8E1D5]'
-                    }`}
-                  />
-                  {errors.fullName && (
-                    <p id="fullName-error" className="mt-1.5 text-xs text-[#C85A32] flex items-center gap-1 font-medium">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{errors.fullName}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Email Address */}
-                <div>
-                  <label 
-                    htmlFor="email" 
-                    className="block text-sm font-semibold text-[#142C20] mb-2"
-                  >
-                    Email Address <span className="text-[#C85A32]" aria-hidden="true">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    aria-required="true"
-                    aria-invalid={!!errors.email}
-                    aria-describedby={errors.email ? "email-error" : undefined}
-                    placeholder="name@example.org"
-                    disabled={isSubmitting}
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm text-[#142C20] bg-[#FAF8F5] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C85A32] ${
-                      errors.email ? 'border-[#C85A32] bg-[#FDF2F0]' : 'border-[#E8E1D5]'
-                    }`}
-                  />
-                  {errors.email && (
-                    <p id="email-error" className="mt-1.5 text-xs text-[#C85A32] flex items-center gap-1 font-medium">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{errors.email}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Phone Number (Optional) */}
-                <div>
-                  <label 
-                    htmlFor="phone" 
-                    className="block text-sm font-semibold text-[#142C20] mb-2"
-                  >
-                    Phone Number <span className="text-xs font-normal text-[#8C7A68]">(Optional)</span>
-                  </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    placeholder="+1 (555) 000-0000"
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[#E8E1D5] text-sm text-[#142C20] bg-[#FAF8F5] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C85A32]"
-                  />
-                </div>
-
-                {/* Subject (Optional) */}
-                <div>
-                  <label 
-                    htmlFor="subject" 
-                    className="block text-sm font-semibold text-[#142C20] mb-2"
-                  >
-                    Subject of Inquiry <span className="text-xs font-normal text-[#8C7A68]">(Optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    placeholder="e.g. Community Dialogue Inquiry"
-                    disabled={isSubmitting}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[#E8E1D5] text-sm text-[#142C20] bg-[#FAF8F5] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C85A32]"
-                  />
-                </div>
-
-                {/* Message */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label 
-                      htmlFor="message" 
-                      className="block text-sm font-semibold text-[#142C20]"
+                  <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={phase === 'sending' || !isContactFormAvailable}
                     >
-                      Message or Inquiry Details <span className="text-[#C85A32]" aria-hidden="true">*</span>
-                    </label>
-                    <span className="text-xs text-[#8C7A68] font-mono">
-                      {formData.message.length} chars
-                    </span>
+                      {phase === 'sending' ? 'Sending…' : isContactFormAvailable ? 'Send message' : 'Sending unavailable'}
+                    </button>
+                    <p className="text-[0.8125rem] text-ink-soft">Fields marked * are required.</p>
                   </div>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows={5}
-                    value={formData.message}
-                    onChange={handleChange}
-                    aria-required="true"
-                    aria-invalid={!!errors.message}
-                    aria-describedby={errors.message ? "message-error" : undefined}
-                    placeholder="Please outline the nature of your inquiry, community group details, or proposed collaboration..."
-                    disabled={isSubmitting}
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm text-[#142C20] bg-[#FAF8F5] transition-colors focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#C85A32] resize-y ${
-                      errors.message ? 'border-[#C85A32] bg-[#FDF2F0]' : 'border-[#E8E1D5]'
-                    }`}
-                  />
-                  {errors.message && (
-                    <p id="message-error" className="mt-1.5 text-xs text-[#C85A32] flex items-center gap-1 font-medium">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{errors.message}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Privacy Notice */}
-                <p className="text-xs text-[#8C7A68] leading-relaxed">
-                  Your submitted details will be held in strict confidence and utilized solely to respond to your specific communication. We do not transmit or sell information to commercial third parties.
-                </p>
-
-                {/* Submit Action Button */}
-                <div>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-4 rounded-2xl bg-[#142C20] hover:bg-[#204533] disabled:bg-[#8C7A68] text-[#FAF8F5] text-sm font-semibold shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 focus-visible:ring-2 focus-visible:ring-[#C85A32] cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin text-[#C85A32]" />
-                        <span>Transmitting Enquiry...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Submit Formal Enquiry</span>
-                        <Send className="w-4 h-4 text-[#C85A32]" />
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
+                </form>
+              )}
             </div>
-
-            {/* Right: Institutional Channels & SLA Cards */}
-            <div className="lg:col-span-5 space-y-6">
-              
-              {/* Direct Channels Card with One-Click Copy */}
-              <div className="bg-[#FAF8F5] rounded-3xl p-8 border border-[#E8E1D5] shadow-xs">
-                <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#C85A32] block mb-1">
-                  Official Communication
-                </span>
-                <h3 className="font-editorial text-2xl font-bold text-[#142C20] mb-6">
-                  Direct Correspondence
-                </h3>
-
-                <div className="space-y-5">
-                  {organizationData.contact.email && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 rounded-2xl bg-white border border-[#E8E1D5] flex items-center justify-center text-[#142C20] shrink-0 shadow-xs">
-                        <Mail className="w-5 h-5 text-[#C85A32]" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs font-mono uppercase font-semibold text-[#8C7A68]">
-                          Email Routing
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <a 
-                            href={`mailto:${organizationData.contact.email}`}
-                            className="text-sm font-semibold text-[#142C20] hover:text-[#C85A32] underline underline-offset-4 decoration-[#E8E1D5] break-all"
-                          >
-                            {organizationData.contact.email}
-                          </a>
-                          <button
-                            type="button"
-                            onClick={handleCopyEmail}
-                            title="Copy email address"
-                            className="p-1 rounded-md text-[#8C7A68] hover:text-[#142C20] hover:bg-[#E8E1D5] transition-colors cursor-pointer"
-                            aria-label="Copy email address"
-                          >
-                            {isEmailCopied ? (
-                              <Check className="w-3.5 h-3.5 text-green-600" />
-                            ) : (
-                              <Copy className="w-3.5 h-3.5" />
-                            )}
-                          </button>
-                        </div>
-                        {isEmailCopied && (
-                          <span className="text-[10px] text-green-700 font-medium block mt-1">
-                            Email copied to clipboard!
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {organizationData.contact.operatingHours && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 rounded-2xl bg-white border border-[#E8E1D5] flex items-center justify-center text-[#142C20] shrink-0 shadow-xs">
-                        <Clock className="w-5 h-5 text-[#204533]" />
-                      </div>
-                      <div>
-                        <div className="text-xs font-mono uppercase font-semibold text-[#8C7A68]">
-                          Review Hours & Response Commitment
-                        </div>
-                        <div className="text-sm text-[#365342] mt-1 font-medium">
-                          {organizationData.contact.operatingHours}
-                        </div>
-                        <div className="text-xs text-[#8C7A68] mt-0.5">
-                          Inquiries reviewed within 2 business days.
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Physical Office Disclosure Note */}
-              <div className="bg-white rounded-3xl p-8 border border-[#E8E1D5] shadow-xs">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#F4EFE6] flex items-center justify-center text-[#8C7A68]">
-                    <Building2 className="w-5 h-5 text-[#8C7A68]" />
-                  </div>
-                  <h4 className="font-editorial font-bold text-lg text-[#142C20]">
-                    Administrative Location
-                  </h4>
-                </div>
-                <p className="text-xs sm:text-sm text-[#465F50] leading-relaxed mb-4">
-                  {organizationData.contact.addressNote}
-                </p>
-                <div className="text-[11px] text-[#8C7A68] italic border-t border-[#E8E1D5] pt-3">
-                  In compliance with content integrity standards, unverified street addresses or simulated map coordinates are not published prior to official administrative confirmation.
-                </div>
-              </div>
-
-              {/* Impartiality & Neutrality Pledge */}
-              <div className="bg-white rounded-3xl p-8 border border-[#E8E1D5] shadow-xs">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#F4EFE6] flex items-center justify-center text-[#C85A32]">
-                    <ShieldCheck className="w-5 h-5 text-[#C85A32]" />
-                  </div>
-                  <h4 className="font-editorial font-bold text-lg text-[#142C20]">
-                    Inquiry Neutrality
-                  </h4>
-                </div>
-                <p className="text-xs sm:text-sm text-[#465F50] leading-relaxed">
-                  FAIRCLAIM FOUNDATION handles all incoming inquiries with impartiality. Submissions are reviewed objectively by our civic coordination desk.
-                </p>
-              </div>
-
-            </div>
-
           </div>
         </div>
       </section>
+    </>
+  );
+}
+
+interface FieldProps {
+  label: string;
+  name: string;
+  error?: string;
+  required?: boolean;
+  hint?: string;
+  children: ReactNode;
+}
+
+/** Permanent label, error message and hint wired to the control via aria attributes. */
+function Field({ label, name, error, required, hint, children }: FieldProps) {
+  const id = `field-${name}`;
+  const errId = `${id}-error`;
+  return (
+    <div>
+      <label htmlFor={id} className="mb-2 flex items-baseline justify-between text-[0.9375rem] font-semibold text-navy">
+        <span>
+          {label}
+          {required && (
+            <span aria-hidden="true" className="ml-0.5 text-gold-ink">
+              *
+            </span>
+          )}
+        </span>
+        {hint && <span className="text-[0.8125rem] font-normal text-ink-soft">{hint}</span>}
+      </label>
+      {cloneElement(children as ReactElement<Record<string, unknown>>, {
+        id,
+        required,
+        'aria-invalid': error ? true : undefined,
+        'aria-describedby': error ? errId : undefined,
+      })}
+      {error && (
+        <p id={errId} className="mt-2 flex items-start gap-2 text-[0.875rem] font-medium text-[#a1241b]">
+          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+          {error}
+        </p>
+      )}
     </div>
   );
-};
+}
