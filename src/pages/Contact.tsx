@@ -1,19 +1,18 @@
 import { cloneElement, useRef, useState } from 'react';
 import type { ChangeEvent, FormEvent, ReactElement, ReactNode } from 'react';
-import { Check, Info, TriangleAlert } from 'lucide-react';
+import { Check, TriangleAlert } from 'lucide-react';
 import { PageHead } from '../components/ui';
 import { idx } from '../lib/stagger';
 import { hasConfirmedContact, organization } from '../data/organization';
 import {
   AREAS_OF_INTEREST,
-  isContactFormAvailable,
   submitContactForm,
   validateContactForm,
   validateField,
 } from '../services/contact';
 import type { ContactErrors, ContactFormData } from '../services/contact';
 
-const EMPTY: ContactFormData = { fullName: '', email: '', areaOfInterest: '', organization: '', message: '' };
+const EMPTY: ContactFormData = { fullName: '', email: '', areaOfInterest: '', organization: '', message: '', website: '' };
 
 const VALIDATED = new Set<string>(['fullName', 'email', 'areaOfInterest', 'message']);
 
@@ -137,8 +136,7 @@ export function Contact() {
                   </span>
                   <h2 className="mt-6 font-serif text-[2rem] leading-tight">Thank you. Your message was sent.</h2>
                   <p className="mx-auto mt-3 max-w-md text-ink-soft">
-                    The form was accepted by our enquiry service. We appreciate you taking the time to share your
-                    perspective.
+                    We appreciate you taking the time to share your perspective.
                   </p>
                   <button type="button" className="btn btn-ghost mt-8" onClick={() => setPhase('idle')}>
                     Send another message
@@ -146,18 +144,6 @@ export function Contact() {
                 </div>
               ) : (
                 <form ref={formRef} onSubmit={onSubmit} noValidate aria-describedby="form-status">
-                  {!isContactFormAvailable && (
-                    <div className="mb-8 flex gap-3 rounded-[6px] border border-gold/60 bg-gold-pale/60 p-4 text-[0.9375rem] text-ink" role="note">
-                      <Info className="mt-0.5 h-5 w-5 shrink-0 text-gold-ink" aria-hidden="true" />
-                      <p>
-                        <strong className="font-semibold text-navy">Online enquiries aren’t available just yet.</strong>{' '}
-                        {hasConfirmedContact
-                          ? 'Please use the direct contact details on this page instead.'
-                          : 'The foundation’s contact details will be published here once they are confirmed. Please check back soon.'}
-                      </p>
-                    </div>
-                  )}
-
                   <div id="form-status" aria-live="polite" className="empty:hidden">
                     {phase === 'failed' && (
                       <div className="mb-8 flex gap-3 rounded-[6px] border border-[#b3261e]/40 bg-[#fdf1ef] p-4 text-[0.9375rem] text-[#7a1a14]" role="alert">
@@ -170,6 +156,21 @@ export function Contact() {
                         Please check {errorCount === 1 ? 'the highlighted field' : `the ${errorCount} highlighted fields`} below.
                       </p>
                     )}
+                  </div>
+
+                  {/* Honeypot: invisible to people and assistive tech, tempting to bots. */}
+                  <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+                    <label>
+                      Leave this field empty
+                      <input
+                        type="text"
+                        name="website"
+                        tabIndex={-1}
+                        autoComplete="off"
+                        value={values.website}
+                        onChange={onChange}
+                      />
+                    </label>
                   </div>
 
                   <div className="grid gap-6 sm:grid-cols-2">
@@ -239,12 +240,8 @@ export function Contact() {
                   </div>
 
                   <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <button
-                      type="submit"
-                      className="btn btn-primary"
-                      disabled={phase === 'sending' || !isContactFormAvailable}
-                    >
-                      {phase === 'sending' ? 'Sending…' : isContactFormAvailable ? 'Send message' : 'Sending unavailable'}
+                    <button type="submit" className="btn btn-primary" disabled={phase === 'sending'}>
+                      {phase === 'sending' ? 'Sending…' : 'Send message'}
                     </button>
                     <p className="text-[0.8125rem] text-ink-soft">Fields marked * are required.</p>
                   </div>

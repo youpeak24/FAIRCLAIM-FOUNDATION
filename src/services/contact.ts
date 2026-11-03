@@ -1,16 +1,16 @@
 /**
  * Contact form integration boundary.
  *
- * Submissions are POSTed as JSON to the HTTPS endpoint in
- * VITE_CONTACT_FORM_ENDPOINT (Formspree, Basin, Web3Forms, or a custom
- * webhook). Success is reported only when that endpoint answers with a
- * 2xx status. With no endpoint configured the form reports itself as
- * unavailable rather than pretending to send.
+ * Submissions are POSTed as JSON to the Vercel serverless function at
+ * /api/contact (api/contact.ts), which emails them to the owner with
+ * nodemailer. Success is reported only when that function answers with a
+ * 2xx status.
  *
  * Payload:
  * {
- *   fullName, email, areaOfInterest, organization, message, submittedAt
+ *   fullName, email, areaOfInterest, organization, message, website
  * }
+ * `website` is a honeypot that must stay empty.
  */
 
 export const AREAS_OF_INTEREST = ['General enquiry', 'Proposed initiatives', 'Collaboration', 'Other'] as const;
@@ -22,6 +22,8 @@ export interface ContactFormData {
   areaOfInterest: string;
   organization: string;
   message: string;
+  /** Honeypot: hidden from people, filled in by bots. */
+  website: string;
 }
 
 export type ContactErrors = Partial<Record<'fullName' | 'email' | 'areaOfInterest' | 'message', string>>;
@@ -30,10 +32,7 @@ export type SubmissionResult =
   | { status: 'sent' }
   | { status: 'failed'; message: string };
 
-const endpoint = (import.meta.env.VITE_CONTACT_FORM_ENDPOINT as string | undefined)?.trim() ?? '';
-
-/** True when a submission endpoint has been configured for this build. */
-export const isContactFormAvailable = endpoint.length > 0;
+const endpoint = '/api/contact';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -75,10 +74,6 @@ export function validateContactForm(data: ContactFormData): ContactErrors {
 }
 
 export async function submitContactForm(data: ContactFormData): Promise<SubmissionResult> {
-  if (!isContactFormAvailable) {
-    return { status: 'failed', message: 'Online enquiries are not available yet.' };
-  }
-
   try {
     const response = await fetch(endpoint, {
       method: 'POST',
@@ -89,7 +84,7 @@ export async function submitContactForm(data: ContactFormData): Promise<Submissi
         areaOfInterest: data.areaOfInterest,
         organization: data.organization.trim(),
         message: data.message.trim(),
-        submittedAt: new Date().toISOString(),
+        website: data.website,
       }),
     });
 
