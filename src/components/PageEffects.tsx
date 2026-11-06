@@ -1,29 +1,16 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
-import { notFoundMeta, pageMeta } from '../data/pageMeta';
+import { applyHead } from '../lib/seo';
 
 const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-/** Unique <title> and meta description per route. */
+/** Keeps <title>, meta description, canonical, Open Graph and JSON-LD correct per route. */
 export function DocumentMeta() {
   const { pathname } = useLocation();
 
   useEffect(() => {
-    const meta = pageMeta[pathname] ?? notFoundMeta;
-    document.title = meta.title;
-    const set = (selector: string, attr: string, key: string, value: string) => {
-      let el = document.head.querySelector<HTMLMetaElement>(selector);
-      if (!el) {
-        el = document.createElement('meta');
-        el.setAttribute(attr, key);
-        document.head.appendChild(el);
-      }
-      el.setAttribute('content', value);
-    };
-    set('meta[name="description"]', 'name', 'description', meta.description);
-    set('meta[property="og:title"]', 'property', 'og:title', meta.title);
-    set('meta[property="og:description"]', 'property', 'og:description', meta.description);
+    applyHead(pathname);
   }, [pathname]);
 
   return null;

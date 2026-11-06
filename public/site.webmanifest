@@ -1,10 +1,13 @@
 {
+  "id": "/",
   "name": "Fairclaim Foundation",
   "short_name": "Fairclaim",
   "description": "A fairer future. Built together.",
   "lang": "en",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
+  "categories": ["education", "politics", "social"],
   "icons": [
     {
       "src": "/android-chrome-192x192.png",

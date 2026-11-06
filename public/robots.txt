@@ -1,0 +1,8 @@
+# https://fairclaimfoundations.org/robots.txt
+# Fairclaim Foundation welcomes search engines and answer engines.
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://fairclaimfoundations.org/sitemap.xml

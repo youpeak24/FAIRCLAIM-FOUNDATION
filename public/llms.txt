@@ -1,0 +1,19 @@
+# Fairclaim Foundation
+
+> Fairclaim Foundation aims to make fairness easier to understand and pursue through public education, constructive dialogue, and a shared commitment to equitable opportunity. Tagline: "A fairer future. Built together."
+
+Important note: the foundation's registration status, leadership and programs are still being confirmed. This website describes its purpose and four *proposed* focus areas only; none of them should be described as an operating program.
+
+## Pages
+
+- [Home](https://fairclaimfoundations.org/): Overview of the foundation's purpose, proposed focus areas, principles and approach.
+- [About](https://fairclaimfoundations.org/about): Purpose, guiding principles and intended direction.
+- [Mission & Vision](https://fairclaimfoundations.org/mission-vision): The mission and vision in plain language.
+- [Initiatives](https://fairclaimfoundations.org/initiatives): The four proposed focus areas: community equity & access; public education & civic understanding; community dialogue & mediation; fairness research & policy insight.
+- [Contact](https://fairclaimfoundations.org/contact): Questions, ideas and collaboration enquiries.
+
+## Optional
+
+- [Privacy Policy (draft)](https://fairclaimfoundations.org/privacy-policy)
+- [Terms & Conditions (draft)](https://fairclaimfoundations.org/terms-and-conditions)
+- [Sitemap](https://fairclaimfoundations.org/sitemap.xml)
