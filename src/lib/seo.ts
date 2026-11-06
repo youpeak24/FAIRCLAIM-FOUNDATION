@@ -2,8 +2,12 @@ import { notFoundMeta, pages } from '../data/pageMeta';
 import { faqs, mission, organization } from '../data/organization';
 import { focusAreas } from '../data/initiatives';
 
-/** Canonical production origin. No trailing slash. */
-export const SITE_URL = 'https://fairclaimfoundations.org';
+/**
+ * Canonical production origin (the host Vercel serves; the bare domain redirects to it).
+ * No trailing slash. Everything else (sitemap, robots.txt, llms.txt, canonicals,
+ * JSON-LD) derives from this one value.
+ */
+export const SITE_URL = 'https://www.fairclaimfoundation.org';
 
 export const SITE = {
   name: 'Fairclaim Foundation',

@@ -86,5 +86,50 @@ ${urls}
 );
 console.log(`sitemap.xml                        -> ${paths.length} URLs (${SITE_URL})`);
 
-// ---- 4. Clean up -----------------------------------------------------------------
+// ---- 4. robots.txt and llms.txt (generated so they always match SITE_URL) -------
+await writeFile(
+  join(dist, 'robots.txt'),
+  `# ${SITE_URL}/robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: ${SITE_URL}/sitemap.xml
+`,
+);
+console.log('robots.txt                         -> ./dist/robots.txt');
+
+const llmsPages = [
+  ['/', 'Home', "Overview of the foundation's purpose, proposed focus areas, principles and approach."],
+  ['/about', 'About', 'Purpose, guiding principles and intended direction.'],
+  ['/mission-vision', 'Mission & Vision', 'The mission and vision in plain language.'],
+  [
+    '/initiatives',
+    'Initiatives',
+    'The four proposed focus areas: community equity & access; public education & civic understanding; community dialogue & mediation; fairness research & policy insight.',
+  ],
+  ['/contact', 'Contact', 'Questions, ideas and collaboration enquiries.'],
+];
+await writeFile(
+  join(dist, 'llms.txt'),
+  `# Fairclaim Foundation
+
+> Fairclaim Foundation aims to make fairness easier to understand and pursue through public education, constructive dialogue, and a shared commitment to equitable opportunity. Tagline: "A fairer future. Built together."
+
+Important note: the foundation's registration status, leadership and programs are still being confirmed. This website describes its purpose and four *proposed* focus areas only; none of them should be described as an operating program.
+
+## Pages
+
+${llmsPages.map(([path, name, desc]) => `- [${name}](${absoluteUrl(path)}): ${desc}`).join('\n')}
+
+## Optional
+
+- [Privacy Policy (draft)](${absoluteUrl('/privacy-policy')})
+- [Terms & Conditions (draft)](${absoluteUrl('/terms-and-conditions')})
+- [Sitemap](${SITE_URL}/sitemap.xml)
+`,
+);
+console.log('llms.txt                           -> ./dist/llms.txt');
+
+// ---- 5. Clean up -----------------------------------------------------------------
 await rm(ssrDir, { recursive: true, force: true });

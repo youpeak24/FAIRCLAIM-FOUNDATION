@@ -52,14 +52,14 @@ Set `VITE_CONTACT_FORM_ENDPOINT` (see `.env.example`) to an HTTPS endpoint (Form
 
 ## 6. SEO
 
-Production domain: **https://fairclaimfoundations.org** (apex; `www` 301-redirects to it).
+Production host: **https://www.fairclaimfoundation.org** (the bare domain redirects to `www` in the Vercel domain settings). To change it, edit `SITE_URL` in `src/lib/seo.ts`: sitemap, robots.txt, llms.txt, canonicals and JSON-LD all derive from it.
 
 - `npm run build` type-checks, builds the client, builds a server entry (`src/entry-server.tsx`) and runs `scripts/prerender.mjs`, which writes real HTML for every route (`dist/about/index.html`, ...), a `404.html`, and `sitemap.xml`. The browser then hydrates that HTML.
 - **To add a page:** add the route in `src/App.tsx` and an entry in `src/data/pageMeta.ts` (title, description, schema type, sitemap hints). The sitemap, canonical, Open Graph tags and breadcrumbs follow automatically.
 - `src/lib/seo.ts` builds each page's head: title, description, canonical, robots, Open Graph, Twitter card, hreflang and JSON-LD (Organization, WebSite, page type, BreadcrumbList; FAQPage on the home page; ItemList on Initiatives). Email, phone, address and social profiles are added to the Organization schema only once filled in `organization.ts`.
-- Static files in `public/`: `robots.txt`, `llms.txt`, `og-image.png` (1200x630), `site.webmanifest`. `sitemap.xml` is generated at build time (`lastmod` comes from git history).
+- `sitemap.xml`, `robots.txt` and `llms.txt` are generated into `dist/` at build time (`lastmod` comes from git history). Static: `public/og-image.png` (1200x630) and `site.webmanifest`.
 - Titles should stay under about 60 characters and descriptions under about 160.
 
 ## 7. Deployment
 
-`vercel.json` enables clean URLs (no trailing slash), the www to apex redirect, security headers (HSTS, CSP, etc.) and long-lived caching for hashed assets. There is deliberately **no** catch-all rewrite to `index.html`: unknown URLs get the real `404.html` with a 404 status instead of a soft 404. `public/_redirects` carries the equivalent www redirect for Netlify-style hosts.
+`vercel.json` enables clean URLs (no trailing slash), security headers (HSTS, CSP, etc.) and long-lived caching for hashed assets. There is deliberately **no** catch-all rewrite to `index.html`: unknown URLs get the real `404.html` with a 404 status instead of a soft 404. `public/_redirects` carries the bare-domain to `www` redirect for Netlify-style hosts.
